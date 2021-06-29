@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Python | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="draftpython 每个线程都是python interpreter程序，独立的task_struct(see linux-thread post)task_struct共享mm (point to mm_struct)共享如下maps，有着相同的结构 全局解释器锁(GIL)　无论你启多少个线程，你有多少个cpu, Python在执行的时候会淡定的在同一时刻只允许一个线程运行Python的线程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python">
+<meta property="og:url" content="http://example.com/2021/06/13/python/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="draftpython 每个线程都是python interpreter程序，独立的task_struct(see linux-thread post)task_struct共享mm (point to mm_struct)共享如下maps，有着相同的结构 全局解释器锁(GIL)　无论你启多少个线程，你有多少个cpu, Python在执行的时候会淡定的在同一时刻只允许一个线程运行Python的线程">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-06-13T18:12:50.000Z">
+<meta property="article:modified_time" content="2021-06-29T06:52:50.857Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-python" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/13/python/" class="article-date">
+  <time class="dt-published" datetime="2021-06-13T18:12:50.000Z" itemprop="datePublished">2021-06-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Python
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="draft"><a href="#draft" class="headerlink" title="draft"></a>draft</h1><p>python 每个线程都是python interpreter程序，<br>独立的task_struct(see linux-thread post)<br>task_struct共享mm (point to mm_struct)<br>共享如下maps，有着相同的结构</p>
+<h2 id="全局解释器锁-GIL"><a href="#全局解释器锁-GIL" class="headerlink" title="全局解释器锁(GIL)"></a>全局解释器锁(GIL)</h2><p>　无论你启多少个线程，你有多少个cpu, Python在执行的时候会淡定的在同一时刻只允许一个线程运行<br>Python的线程就是操作系统的线程(POSIX thread || Win thread)，线程调度也直接使用操作系统的线程调度。</p>
+<p>因为python的线程是调用操作系统的原生线程，这个原生线程就是C语言写的原生线程。因为python是用C写的，启动的时候就是调用的C语言的接口。<br>每个线程在执行的过程中，python解释器是控制不了的，因为是调的C语言的接口，超出了python的控制范围，python的控制范围是只在python解释器这一层，所以python控制不了C接口，它只能等结果。所以它不能控制让哪个线程先执行，因为是一块调用的，只要一执行，就是等结果，这个时候4个线程独自执行，所以结果就不一定正确了。有了GIL，就可以在同一时间只有一个线程能够工作。虽然这4个线程都启动了，但是同一时间我只能让一个线程拿到这个数据。</p>
+<p>这也是Cpython的一个缺陷，其他语言没有，仅仅只是Cpython有。</p>
+<p>因为你python调用的所有线程都是原生线程。原生线程是通过C语言提供原生接口，相当于C语言的一个函数。你一调它，你就控制不了了它了，就必须等它给你返回结果。只要已通过python虚拟机，再往下就不受python控制了，就是C语言自己控制了。你加在python虚拟机以下，你是加不上去的。同一时间，只有一个线程穿过这个锁去真正执行。其他的线程，只能在python虚拟机这边等待。</p>
+<p>需要明确的一点是GIL并不是Python的特性，它是在实现Python解析器(CPython)时所引入的一个概念。就好比C++是一套语言（语法）标准，但是可以用不同的编译器来编译成可执行代码。有名的编译器例如GCC，INTEL C++，Visual C++等。Python也一样，同样一段代码可以通过CPython，PyPy，Psyco等不同的Python执行环境来执行。像其中的JPython就没有GIL。然而因为CPython是大部分环境下默认的Python执行环境。所以在很多人的概念里CPython就是Python，也就想当然的把GIL归结为Python语言的缺陷。所以这里要先明确一点：GIL并不是Python的特性，Python完全可以不依赖于GIL。</p>
+<p>···</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">// * 此处for循环是在执行OPCode序列</span><br><span class="line">    for (;;) &#123;</span><br><span class="line"></span><br><span class="line">        // ...(只显示关键代码，其他忽略)</span><br><span class="line"></span><br><span class="line">        // * 防止每个OP（非fast OP）都处理一次GIL，此处会限制OP次数。默认是100次。可修改。</span><br><span class="line">        if (--_Py_Ticker &lt; 0) &#123;</span><br><span class="line">            _Py_Ticker = _Py_CheckInterval;</span><br><span class="line">            </span><br><span class="line">            // ...</span><br><span class="line"> </span><br><span class="line">#ifdef WITH_THREAD</span><br><span class="line">            // * 超过100次，则进入GIL处理部分</span><br><span class="line">            if (interpreter_lock) &#123;</span><br><span class="line">                /* Give another thread a chance */</span><br><span class="line"></span><br><span class="line">                // ...</span><br><span class="line"></span><br><span class="line">                // * 如果GIL已经初始化，则释放它</span><br><span class="line">                PyThread_release_lock(interpreter_lock);</span><br><span class="line"></span><br><span class="line">                /* Other threads may run now */</span><br><span class="line">                // *  再获取它 （此处会存在多线程竞争，只有一个线程能获取成功。其他线程只能在此处等待）</span><br><span class="line">                PyThread_acquire_lock(interpreter_lock, 1);</span><br><span class="line"></span><br><span class="line">                // ...</span><br><span class="line">            &#125;</span><br><span class="line">#endif</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><figcaption><span>/proc/&#123;pid&#125;/maps</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">5649e51a6000-5649e51a7000 r--p 00000000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e51a7000-5649e51a8000 r-xp 00001000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e51a8000-5649e51a9000 r--p 00002000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e51a9000-5649e51aa000 r--p 00002000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e51aa000-5649e51ab000 rw-p 00003000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e522c000-5649e52b8000 rw-p 00000000 00:00 0                          [heap]</span><br><span class="line">7f9d78000000-7f9d78021000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d78021000-7f9d7c000000 ---p 00000000 00:00 0 </span><br><span class="line">7f9d80000000-7f9d80021000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d80021000-7f9d84000000 ---p 00000000 00:00 0 </span><br><span class="line">7f9d8516f000-7f9d85170000 ---p 00000000 00:00 0 </span><br><span class="line">7f9d85170000-7f9d85970000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d85970000-7f9d85971000 ---p 00000000 00:00 0 </span><br><span class="line">7f9d85971000-7f9d86316000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d86316000-7f9d86348000 r--p 00000000 fe:01 1190428                    /usr/lib/locale/C.UTF-8/LC_CTYPE</span><br><span class="line">7f9d86348000-7f9d8634b000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d8634b000-7f9d8636d000 r--p 00000000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d8636d000-7f9d864b5000 r-xp 00022000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d864b5000-7f9d86501000 r--p 0016a000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d86501000-7f9d86502000 ---p 001b6000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d86502000-7f9d86506000 r--p 001b6000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d86506000-7f9d86508000 rw-p 001ba000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d86508000-7f9d8650e000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d8650e000-7f9d8651b000 r--p 00000000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d8651b000-7f9d865ba000 r-xp 0000d000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d865ba000-7f9d8668f000 r--p 000ac000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d8668f000-7f9d86690000 r--p 00180000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d86690000-7f9d86691000 rw-p 00181000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d86691000-7f9d86692000 r--p 00000000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86692000-7f9d86693000 r-xp 00001000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86693000-7f9d86694000 r--p 00002000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86694000-7f9d86695000 r--p 00002000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86695000-7f9d86696000 rw-p 00003000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86696000-7f9d86697000 r--p 00000000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d86697000-7f9d86698000 r-xp 00001000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d86698000-7f9d86699000 r--p 00002000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d86699000-7f9d8669a000 r--p 00002000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d8669a000-7f9d8669b000 rw-p 00003000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d8669b000-7f9d866a1000 r--p 00000000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866a1000-7f9d866b0000 r-xp 00006000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866b0000-7f9d866b6000 r--p 00015000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866b6000-7f9d866b7000 r--p 0001a000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866b7000-7f9d866b8000 rw-p 0001b000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866b8000-7f9d866bc000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d866bc000-7f9d866bd000 r--p 00000000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866bd000-7f9d866c3000 r-xp 00001000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c3000-7f9d866c5000 r--p 00007000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c5000-7f9d866c6000 ---p 00009000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c6000-7f9d866c7000 r--p 00009000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c7000-7f9d866c8000 rw-p 0000a000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c8000-7f9d866f6000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d866f6000-7f9d86756000 r--p 00000000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86756000-7f9d86967000 r-xp 00060000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86967000-7f9d86a5a000 r--p 00271000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86a5a000-7f9d86a60000 r--p 00363000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86a60000-7f9d86a9a000 rw-p 00369000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86a9a000-7f9d86abe000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d86ac0000-7f9d86ac7000 r--s 00000000 fe:01 1190707                    /usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache</span><br><span class="line">7f9d86ac7000-7f9d86ac8000 r--p 00000000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86ac8000-7f9d86ae6000 r-xp 00001000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86ae6000-7f9d86aee000 r--p 0001f000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86aee000-7f9d86aef000 r--p 00026000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86aef000-7f9d86af0000 rw-p 00027000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86af0000-7f9d86af1000 rw-p 00000000 00:00 0 </span><br><span class="line">7ffe3979f000-7ffe397c0000 rw-p 00000000 00:00 0                          [stack]</span><br><span class="line">7ffe397c6000-7ffe397ca000 r--p 00000000 00:00 0                          [vvar]</span><br><span class="line">7ffe397ca000-7ffe397cc000 r-xp 00000000 00:00 0                          [vdso]</span><br><span class="line">ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/13/python/" data-id="ckqhp9u6x00143ot09vc940v0" data-title="Python" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/02/09/virtualbox-ubuntu/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">virtualbox ubuntu安装配置</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ACM/" style="font-size: 15px;">ACM</a> <a href="/tags/CTF/" style="font-size: 12.5px;">CTF</a> <a href="/tags/JVM/" style="font-size: 17.5px;">JVM</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Web/" style="font-size: 15px;">Web</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/13/python/">Python</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/v2ray/">搭梯子</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/SuffixArray/">SuffixArray</a>
+          </li>
+        
+          <li>
+            <a href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

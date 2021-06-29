@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>SuffixArray | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889#include&lt;iostream&gt;#includ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SuffixArray">
+<meta property="og:url" content="http://example.com/2021/02/08/SuffixArray/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162636465666768697071727374757677787980818283848586878889#include&lt;iostream&gt;#includ">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-02-08T18:06:43.000Z">
+<meta property="article:modified_time" content="2021-06-29T06:52:50.855Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="ACM">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-SuffixArray" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/02/08/SuffixArray/" class="article-date">
+  <time class="dt-published" datetime="2021-02-08T18:06:43.000Z" itemprop="datePublished">2021-02-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      SuffixArray
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line">#include&lt;iostream&gt;</span><br><span class="line">#include&lt;stack&gt;</span><br><span class="line">#include&lt;iomanip&gt;</span><br><span class="line">#include&lt;algorithm&gt;</span><br><span class="line">#include&lt;string&gt;</span><br><span class="line">#include&lt;string.h&gt;</span><br><span class="line">#include&lt;cmath&gt;</span><br><span class="line">#include&lt;set&gt;</span><br><span class="line">#include&lt;vector&gt;</span><br><span class="line">#include&lt;queue&gt;</span><br><span class="line">#include&lt;map&gt;</span><br><span class="line">using namespace std;</span><br><span class="line">const int N = 1e6 + 10;</span><br><span class="line">using ll = long long;</span><br><span class="line">const int INF = 0x3f3f3f3f;</span><br><span class="line">using pii = pair&lt;int, int&gt;;</span><br><span class="line">using vi = vector&lt;int&gt;;</span><br><span class="line">#define rep(i, a, b) for (int i = (a); i &lt; (b); i++)</span><br><span class="line">#define mp make_pair </span><br><span class="line">#define pb push_back</span><br><span class="line">#define clr(x, v) memset(x, v, sizeof (x))</span><br><span class="line">#define all(x) x.begin(), x.end()</span><br><span class="line">#define fi first</span><br><span class="line">#define se second</span><br><span class="line">const int MOD = 1e9 + 7;</span><br><span class="line"></span><br><span class="line">struct SuffixArray &#123;</span><br><span class="line">    static const int MAXN = 3e5 + 10;</span><br><span class="line">    string s;</span><br><span class="line">    int n; </span><br><span class="line">    int rank[MAXN]; // position -&gt; rank</span><br><span class="line">    int sa[MAXN]; // rank -&gt; position</span><br><span class="line">    int lcp[MAXN]; // longest common prefix for [i]th rank and [i-1]th rank</span><br><span class="line">    int tmp[MAXN], buc[MAXN];</span><br><span class="line">    </span><br><span class="line">    SuffixArray(string s) : s(s)&#123;</span><br><span class="line">        n = s.size();</span><br><span class="line">        int m = 256;</span><br><span class="line">        for (int i = 0; i &lt; m; i++) buc[i] = 0;</span><br><span class="line">        for (int i = 0; i &lt; n; i++) buc[rank[i] = s[i]]++;</span><br><span class="line">        for (int i = 1; i &lt; m; i++) buc[i] += buc[i - 1];</span><br><span class="line">        for (int i = n - 1; i &gt;= 0; i--) sa[--buc[rank[i]]] = i;</span><br><span class="line">        for (int k = 1; k &lt;= n; k &lt;&lt;= 1) &#123;</span><br><span class="line">            int p = 0;</span><br><span class="line">            for (int i = n - k; i &lt; n; i++) tmp[p++] = i;</span><br><span class="line">            for (int i = 0; i &lt; n; i++) if (sa[i] &gt;= k) tmp[p++] = sa[i] - k;</span><br><span class="line">            for (int i = 0; i &lt; m; i++) buc[i] = 0;</span><br><span class="line">            for (int i = 0; i &lt; n; i++) buc[rank[tmp[i]]]++;</span><br><span class="line">            for (int i = 1; i &lt; m; i++) buc[i] += buc[i - 1];</span><br><span class="line">            for (int i = n - 1; i &gt;= 0; i--) sa[--buc[rank[tmp[i]]]] = tmp[i];</span><br><span class="line">            swap(rank, tmp);</span><br><span class="line">            p = 1;</span><br><span class="line">            rank[sa[0]] = 0;</span><br><span class="line">            for (int i = 1; i &lt; n; i++) &#123;</span><br><span class="line">                rank[sa[i]] = (tmp[sa[i - 1]] == tmp[sa[i]] &amp;&amp; sa[i - 1] + k &lt; n &amp;&amp; sa[i] + k &lt; n &amp;&amp; tmp[sa[i - 1] + k] == tmp[sa[i] + k]) ? p - 1 : p++; </span><br><span class="line">            &#125;</span><br><span class="line">            m = p;</span><br><span class="line">            if (p &gt;= n) break;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        int pre = 0;</span><br><span class="line">        for (int i = 0; i &lt; n; i++) &#123;</span><br><span class="line">            if (pre) pre--;</span><br><span class="line">            if (rank[i] == 0) continue;</span><br><span class="line">            int j = sa[rank[i] - 1];</span><br><span class="line">            while (s[i + pre] == s[j + pre]) pre++;</span><br><span class="line">            lcp[rank[i]] = pre;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line">ll getDistinctSubstring(string s) &#123;</span><br><span class="line">    SuffixArray sa(s);</span><br><span class="line">    int n = s.size();</span><br><span class="line">    ll res = 0;</span><br><span class="line">    for (int i = 0; i &lt; n; i++) &#123;</span><br><span class="line">        res += n - sa.sa[i] - sa.lcp[i];</span><br><span class="line">    &#125;</span><br><span class="line">    return res;</span><br><span class="line">&#125;</span><br><span class="line">int main() &#123;</span><br><span class="line">    // string s = &quot;aabaaaab&quot;;</span><br><span class="line">    // SuffixArray sa(s);</span><br><span class="line">    // for (int i = 0; i &lt; (int)s.size(); i++) &#123;</span><br><span class="line">    //     cout &lt;&lt; s.substr(sa.sa[i]) &lt;&lt; &quot; &quot; &lt;&lt; sa.lcp[i] &lt;&lt; endl;</span><br><span class="line">    // &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/02/08/SuffixArray/" data-id="ckqhp9u6p000i3ot0d8kjdqkh" data-title="SuffixArray" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/02/08/v2ray/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          搭梯子
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/01/29/IO-Multiplexing/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">I/O 多路复用</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ACM/" style="font-size: 15px;">ACM</a> <a href="/tags/CTF/" style="font-size: 12.5px;">CTF</a> <a href="/tags/JVM/" style="font-size: 17.5px;">JVM</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Web/" style="font-size: 15px;">Web</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/13/python/">Python</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/v2ray/">搭梯子</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/SuffixArray/">SuffixArray</a>
+          </li>
+        
+          <li>
+            <a href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

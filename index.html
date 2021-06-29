@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-python" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/06/13/python/" class="article-date">
+  <time class="dt-published" datetime="2021-06-13T18:12:50.000Z" itemprop="datePublished">2021-06-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/06/13/python/">Python</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="draft"><a href="#draft" class="headerlink" title="draft"></a>draft</h1><p>python 每个线程都是python interpreter程序，<br>独立的task_struct(see linux-thread post)<br>task_struct共享mm (point to mm_struct)<br>共享如下maps，有着相同的结构</p>
+<h2 id="全局解释器锁-GIL"><a href="#全局解释器锁-GIL" class="headerlink" title="全局解释器锁(GIL)"></a>全局解释器锁(GIL)</h2><p>　无论你启多少个线程，你有多少个cpu, Python在执行的时候会淡定的在同一时刻只允许一个线程运行<br>Python的线程就是操作系统的线程(POSIX thread || Win thread)，线程调度也直接使用操作系统的线程调度。</p>
+<p>因为python的线程是调用操作系统的原生线程，这个原生线程就是C语言写的原生线程。因为python是用C写的，启动的时候就是调用的C语言的接口。<br>每个线程在执行的过程中，python解释器是控制不了的，因为是调的C语言的接口，超出了python的控制范围，python的控制范围是只在python解释器这一层，所以python控制不了C接口，它只能等结果。所以它不能控制让哪个线程先执行，因为是一块调用的，只要一执行，就是等结果，这个时候4个线程独自执行，所以结果就不一定正确了。有了GIL，就可以在同一时间只有一个线程能够工作。虽然这4个线程都启动了，但是同一时间我只能让一个线程拿到这个数据。</p>
+<p>这也是Cpython的一个缺陷，其他语言没有，仅仅只是Cpython有。</p>
+<p>因为你python调用的所有线程都是原生线程。原生线程是通过C语言提供原生接口，相当于C语言的一个函数。你一调它，你就控制不了了它了，就必须等它给你返回结果。只要已通过python虚拟机，再往下就不受python控制了，就是C语言自己控制了。你加在python虚拟机以下，你是加不上去的。同一时间，只有一个线程穿过这个锁去真正执行。其他的线程，只能在python虚拟机这边等待。</p>
+<p>需要明确的一点是GIL并不是Python的特性，它是在实现Python解析器(CPython)时所引入的一个概念。就好比C++是一套语言（语法）标准，但是可以用不同的编译器来编译成可执行代码。有名的编译器例如GCC，INTEL C++，Visual C++等。Python也一样，同样一段代码可以通过CPython，PyPy，Psyco等不同的Python执行环境来执行。像其中的JPython就没有GIL。然而因为CPython是大部分环境下默认的Python执行环境。所以在很多人的概念里CPython就是Python，也就想当然的把GIL归结为Python语言的缺陷。所以这里要先明确一点：GIL并不是Python的特性，Python完全可以不依赖于GIL。</p>
+<p>···</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">// * 此处for循环是在执行OPCode序列</span><br><span class="line">    for (;;) &#123;</span><br><span class="line"></span><br><span class="line">        // ...(只显示关键代码，其他忽略)</span><br><span class="line"></span><br><span class="line">        // * 防止每个OP（非fast OP）都处理一次GIL，此处会限制OP次数。默认是100次。可修改。</span><br><span class="line">        if (--_Py_Ticker &lt; 0) &#123;</span><br><span class="line">            _Py_Ticker = _Py_CheckInterval;</span><br><span class="line">            </span><br><span class="line">            // ...</span><br><span class="line"> </span><br><span class="line">#ifdef WITH_THREAD</span><br><span class="line">            // * 超过100次，则进入GIL处理部分</span><br><span class="line">            if (interpreter_lock) &#123;</span><br><span class="line">                /* Give another thread a chance */</span><br><span class="line"></span><br><span class="line">                // ...</span><br><span class="line"></span><br><span class="line">                // * 如果GIL已经初始化，则释放它</span><br><span class="line">                PyThread_release_lock(interpreter_lock);</span><br><span class="line"></span><br><span class="line">                /* Other threads may run now */</span><br><span class="line">                // *  再获取它 （此处会存在多线程竞争，只有一个线程能获取成功。其他线程只能在此处等待）</span><br><span class="line">                PyThread_acquire_lock(interpreter_lock, 1);</span><br><span class="line"></span><br><span class="line">                // ...</span><br><span class="line">            &#125;</span><br><span class="line">#endif</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><figcaption><span>/proc/&#123;pid&#125;/maps</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">5649e51a6000-5649e51a7000 r--p 00000000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e51a7000-5649e51a8000 r-xp 00001000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e51a8000-5649e51a9000 r--p 00002000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e51a9000-5649e51aa000 r--p 00002000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e51aa000-5649e51ab000 rw-p 00003000 fe:01 1458454                    /usr/local/bin/python3.9</span><br><span class="line">5649e522c000-5649e52b8000 rw-p 00000000 00:00 0                          [heap]</span><br><span class="line">7f9d78000000-7f9d78021000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d78021000-7f9d7c000000 ---p 00000000 00:00 0 </span><br><span class="line">7f9d80000000-7f9d80021000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d80021000-7f9d84000000 ---p 00000000 00:00 0 </span><br><span class="line">7f9d8516f000-7f9d85170000 ---p 00000000 00:00 0 </span><br><span class="line">7f9d85170000-7f9d85970000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d85970000-7f9d85971000 ---p 00000000 00:00 0 </span><br><span class="line">7f9d85971000-7f9d86316000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d86316000-7f9d86348000 r--p 00000000 fe:01 1190428                    /usr/lib/locale/C.UTF-8/LC_CTYPE</span><br><span class="line">7f9d86348000-7f9d8634b000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d8634b000-7f9d8636d000 r--p 00000000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d8636d000-7f9d864b5000 r-xp 00022000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d864b5000-7f9d86501000 r--p 0016a000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d86501000-7f9d86502000 ---p 001b6000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d86502000-7f9d86506000 r--p 001b6000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d86506000-7f9d86508000 rw-p 001ba000 fe:01 1058295                    /lib/x86_64-linux-gnu/libc-2.28.so</span><br><span class="line">7f9d86508000-7f9d8650e000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d8650e000-7f9d8651b000 r--p 00000000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d8651b000-7f9d865ba000 r-xp 0000d000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d865ba000-7f9d8668f000 r--p 000ac000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d8668f000-7f9d86690000 r--p 00180000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d86690000-7f9d86691000 rw-p 00181000 fe:01 1058320                    /lib/x86_64-linux-gnu/libm-2.28.so</span><br><span class="line">7f9d86691000-7f9d86692000 r--p 00000000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86692000-7f9d86693000 r-xp 00001000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86693000-7f9d86694000 r--p 00002000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86694000-7f9d86695000 r--p 00002000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86695000-7f9d86696000 rw-p 00003000 fe:01 1058374                    /lib/x86_64-linux-gnu/libutil-2.28.so</span><br><span class="line">7f9d86696000-7f9d86697000 r--p 00000000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d86697000-7f9d86698000 r-xp 00001000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d86698000-7f9d86699000 r--p 00002000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d86699000-7f9d8669a000 r--p 00002000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d8669a000-7f9d8669b000 rw-p 00003000 fe:01 1058305                    /lib/x86_64-linux-gnu/libdl-2.28.so</span><br><span class="line">7f9d8669b000-7f9d866a1000 r--p 00000000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866a1000-7f9d866b0000 r-xp 00006000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866b0000-7f9d866b6000 r--p 00015000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866b6000-7f9d866b7000 r--p 0001a000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866b7000-7f9d866b8000 rw-p 0001b000 fe:01 1058354                    /lib/x86_64-linux-gnu/libpthread-2.28.so</span><br><span class="line">7f9d866b8000-7f9d866bc000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d866bc000-7f9d866bd000 r--p 00000000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866bd000-7f9d866c3000 r-xp 00001000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c3000-7f9d866c5000 r--p 00007000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c5000-7f9d866c6000 ---p 00009000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c6000-7f9d866c7000 r--p 00009000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c7000-7f9d866c8000 rw-p 0000a000 fe:01 1058303                    /lib/x86_64-linux-gnu/libcrypt-2.28.so</span><br><span class="line">7f9d866c8000-7f9d866f6000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d866f6000-7f9d86756000 r--p 00000000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86756000-7f9d86967000 r-xp 00060000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86967000-7f9d86a5a000 r--p 00271000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86a5a000-7f9d86a60000 r--p 00363000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86a60000-7f9d86a9a000 rw-p 00369000 fe:01 1458618                    /usr/local/lib/libpython3.9.so.1.0</span><br><span class="line">7f9d86a9a000-7f9d86abe000 rw-p 00000000 00:00 0 </span><br><span class="line">7f9d86ac0000-7f9d86ac7000 r--s 00000000 fe:01 1190707                    /usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache</span><br><span class="line">7f9d86ac7000-7f9d86ac8000 r--p 00000000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86ac8000-7f9d86ae6000 r-xp 00001000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86ae6000-7f9d86aee000 r--p 0001f000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86aee000-7f9d86aef000 r--p 00026000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86aef000-7f9d86af0000 rw-p 00027000 fe:01 1058281                    /lib/x86_64-linux-gnu/ld-2.28.so</span><br><span class="line">7f9d86af0000-7f9d86af1000 rw-p 00000000 00:00 0 </span><br><span class="line">7ffe3979f000-7ffe397c0000 rw-p 00000000 00:00 0                          [stack]</span><br><span class="line">7ffe397c6000-7ffe397ca000 r--p 00000000 00:00 0                          [vvar]</span><br><span class="line">7ffe397ca000-7ffe397cc000 r-xp 00000000 00:00 0                          [vdso]</span><br><span class="line">ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/06/13/python/" data-id="ckqhp9u6x00143ot09vc940v0" data-title="Python" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-virtualbox-ubuntu" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/02/09/virtualbox-ubuntu/" class="article-date">
+  <time class="dt-published" datetime="2021-02-10T06:09:53.000Z" itemprop="datePublished">2021-02-09</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">下载 ubuntu-20.04-live-server-amd64.iso</span><br><span class="line">VirtualBox 安装,换成阿里云镜像</span><br><span class="line">http://mirrors.aliyun.com/ubuntu</span><br><span class="line"></span><br><span class="line">ssh设置network/NAT port forwarding</span><br><span class="line">TCP 127.0.0.1[Host IP] 2222[Host Port] /[Guest IP] 22[Guest Port]</span><br><span class="line"></span><br><span class="line">登录 </span><br><span class="line">ssh -p 2222 username@localhost</span><br><span class="line"></span><br><span class="line">免密登录，导入客户端id_rsa.pub到服务器~/.ssh/authorized_keys</span><br><span class="line"></span><br><span class="line">共享文件夹</span><br><span class="line">VB选择文件夹映射</span><br><span class="line"></span><br><span class="line">sudo mount -t vboxsf share ~/shared</span><br><span class="line">设置自动加载 /etc/fstab 在末尾另起一行，加上</span><br><span class="line">share ~/shared vboxsf rw,gid=100,uid=1000,auto 0 0</span><br><span class="line"></span><br><span class="line">命令行控制VB</span><br><span class="line">VBoxManage startvm ubuntu --type headless;</span><br><span class="line">VBoxManage controlvm ubuntu poweroff</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/02/09/virtualbox-ubuntu/" data-id="ckqhp9u6y00193ot0fe14fh2n" data-title="virtualbox ubuntu安装配置" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-v2ray" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/02/08/v2ray/" class="article-date">
+  <time class="dt-published" datetime="2021-02-09T05:57:44.000Z" itemprop="datePublished">2021-02-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/02/08/v2ray/">搭梯子</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="Server"><a href="#Server" class="headerlink" title="Server"></a>Server</h2><p>服务器 google cloud n1-standard-1（1 个 vCPU，3.75 GB 内存）<br>区域<br>asia-east2-a (hong kong)<br>50美金/月左右</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">bash &lt;(curl -s -L https://git.io/v2ray.sh)</span><br><span class="line"></span><br><span class="line">port: 37307</span><br><span class="line"></span><br><span class="line"># firewalld放行端口（适用于CentOS7/8）</span><br><span class="line">firewall-cmd --permanent --add-port=37307/tcp # 37307改成你配置文件中的端口号</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">ss -ntlp | grep v2ray 命令可以查看v2ray是否正在运行</span><br><span class="line"></span><br><span class="line">生成url链接导入客户端</span><br></pre></td></tr></table></figure>
+
+<h2 id="Mac"><a href="#Mac" class="headerlink" title="Mac"></a>Mac</h2><p>url 导入 v2ray-core即可<br><img src="/images/v2ray/mac.png"></p>
+<h2 id="Chrome"><a href="#Chrome" class="headerlink" title="Chrome"></a>Chrome</h2><p><img src="/images/v2ray/omega1.png"><br><img src="/images/v2ray/omega1.png"></p>
+<h2 id="iPhone"><a href="#iPhone" class="headerlink" title="iPhone"></a>iPhone</h2><p>Apple Store 购买 shadowrocket $2.99<br>扫描server生成的url链接的二维码课直接导入</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/02/08/v2ray/" data-id="ckqhp9u6y00163ot04dolhxxe" data-title="搭梯子" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-SuffixArray" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/02/08/SuffixArray/" class="article-date">
+  <time class="dt-published" datetime="2021-02-08T18:06:43.000Z" itemprop="datePublished">2021-02-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/02/08/SuffixArray/">SuffixArray</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br></pre></td><td class="code"><pre><span class="line">#include&lt;iostream&gt;</span><br><span class="line">#include&lt;stack&gt;</span><br><span class="line">#include&lt;iomanip&gt;</span><br><span class="line">#include&lt;algorithm&gt;</span><br><span class="line">#include&lt;string&gt;</span><br><span class="line">#include&lt;string.h&gt;</span><br><span class="line">#include&lt;cmath&gt;</span><br><span class="line">#include&lt;set&gt;</span><br><span class="line">#include&lt;vector&gt;</span><br><span class="line">#include&lt;queue&gt;</span><br><span class="line">#include&lt;map&gt;</span><br><span class="line">using namespace std;</span><br><span class="line">const int N = 1e6 + 10;</span><br><span class="line">using ll = long long;</span><br><span class="line">const int INF = 0x3f3f3f3f;</span><br><span class="line">using pii = pair&lt;int, int&gt;;</span><br><span class="line">using vi = vector&lt;int&gt;;</span><br><span class="line">#define rep(i, a, b) for (int i = (a); i &lt; (b); i++)</span><br><span class="line">#define mp make_pair </span><br><span class="line">#define pb push_back</span><br><span class="line">#define clr(x, v) memset(x, v, sizeof (x))</span><br><span class="line">#define all(x) x.begin(), x.end()</span><br><span class="line">#define fi first</span><br><span class="line">#define se second</span><br><span class="line">const int MOD = 1e9 + 7;</span><br><span class="line"></span><br><span class="line">struct SuffixArray &#123;</span><br><span class="line">    static const int MAXN = 3e5 + 10;</span><br><span class="line">    string s;</span><br><span class="line">    int n; </span><br><span class="line">    int rank[MAXN]; // position -&gt; rank</span><br><span class="line">    int sa[MAXN]; // rank -&gt; position</span><br><span class="line">    int lcp[MAXN]; // longest common prefix for [i]th rank and [i-1]th rank</span><br><span class="line">    int tmp[MAXN], buc[MAXN];</span><br><span class="line">    </span><br><span class="line">    SuffixArray(string s) : s(s)&#123;</span><br><span class="line">        n = s.size();</span><br><span class="line">        int m = 256;</span><br><span class="line">        for (int i = 0; i &lt; m; i++) buc[i] = 0;</span><br><span class="line">        for (int i = 0; i &lt; n; i++) buc[rank[i] = s[i]]++;</span><br><span class="line">        for (int i = 1; i &lt; m; i++) buc[i] += buc[i - 1];</span><br><span class="line">        for (int i = n - 1; i &gt;= 0; i--) sa[--buc[rank[i]]] = i;</span><br><span class="line">        for (int k = 1; k &lt;= n; k &lt;&lt;= 1) &#123;</span><br><span class="line">            int p = 0;</span><br><span class="line">            for (int i = n - k; i &lt; n; i++) tmp[p++] = i;</span><br><span class="line">            for (int i = 0; i &lt; n; i++) if (sa[i] &gt;= k) tmp[p++] = sa[i] - k;</span><br><span class="line">            for (int i = 0; i &lt; m; i++) buc[i] = 0;</span><br><span class="line">            for (int i = 0; i &lt; n; i++) buc[rank[tmp[i]]]++;</span><br><span class="line">            for (int i = 1; i &lt; m; i++) buc[i] += buc[i - 1];</span><br><span class="line">            for (int i = n - 1; i &gt;= 0; i--) sa[--buc[rank[tmp[i]]]] = tmp[i];</span><br><span class="line">            swap(rank, tmp);</span><br><span class="line">            p = 1;</span><br><span class="line">            rank[sa[0]] = 0;</span><br><span class="line">            for (int i = 1; i &lt; n; i++) &#123;</span><br><span class="line">                rank[sa[i]] = (tmp[sa[i - 1]] == tmp[sa[i]] &amp;&amp; sa[i - 1] + k &lt; n &amp;&amp; sa[i] + k &lt; n &amp;&amp; tmp[sa[i - 1] + k] == tmp[sa[i] + k]) ? p - 1 : p++; </span><br><span class="line">            &#125;</span><br><span class="line">            m = p;</span><br><span class="line">            if (p &gt;= n) break;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        int pre = 0;</span><br><span class="line">        for (int i = 0; i &lt; n; i++) &#123;</span><br><span class="line">            if (pre) pre--;</span><br><span class="line">            if (rank[i] == 0) continue;</span><br><span class="line">            int j = sa[rank[i] - 1];</span><br><span class="line">            while (s[i + pre] == s[j + pre]) pre++;</span><br><span class="line">            lcp[rank[i]] = pre;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line">ll getDistinctSubstring(string s) &#123;</span><br><span class="line">    SuffixArray sa(s);</span><br><span class="line">    int n = s.size();</span><br><span class="line">    ll res = 0;</span><br><span class="line">    for (int i = 0; i &lt; n; i++) &#123;</span><br><span class="line">        res += n - sa.sa[i] - sa.lcp[i];</span><br><span class="line">    &#125;</span><br><span class="line">    return res;</span><br><span class="line">&#125;</span><br><span class="line">int main() &#123;</span><br><span class="line">    // string s = &quot;aabaaaab&quot;;</span><br><span class="line">    // SuffixArray sa(s);</span><br><span class="line">    // for (int i = 0; i &lt; (int)s.size(); i++) &#123;</span><br><span class="line">    //     cout &lt;&lt; s.substr(sa.sa[i]) &lt;&lt; &quot; &quot; &lt;&lt; sa.lcp[i] &lt;&lt; endl;</span><br><span class="line">    // &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/02/08/SuffixArray/" data-id="ckqhp9u6p000i3ot0d8kjdqkh" data-title="SuffixArray" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-IO-Multiplexing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/29/IO-Multiplexing/" class="article-date">
+  <time class="dt-published" datetime="2021-01-30T04:02:23.000Z" itemprop="datePublished">2021-01-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV11K4y1C7rm?p=2">https://www.bilibili.com/video/BV11K4y1C7rm?p=2</a></p>
+<p><img src="/images/IO_multiplexing/intro.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">import java.io.*;</span><br><span class="line">import java.net.ServerSocket;</span><br><span class="line">import java.net.Socket;</span><br><span class="line"></span><br><span class="line">public class TestSocket &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        ServerSocket server = new ServerSocket(8090);</span><br><span class="line">        System.out.println(&quot;step1: new ServerSocket(8090)&quot;);</span><br><span class="line">        while (true) &#123;</span><br><span class="line">            Socket client = server.accept();</span><br><span class="line">            System.out.println(&quot;step2: client\t&quot; + client.getPort());</span><br><span class="line">            new Thread(() -&gt; &#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    InputStream in = client.getInputStream();</span><br><span class="line">                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));</span><br><span class="line">                    while (true) &#123;</span><br><span class="line">                        System.out.println(reader.readLine());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; catch (IOException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;).start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>-ff 对fork出来的线程/进程 也进行跟踪     系统调用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strace -ff -o ./ooxx java TestSocket</span><br></pre></td></tr></table></figure>
+
+<p>server | client</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ strace -ff -o ./o│ck@test104:~/SocketTest$ nc localhost 8090</span><br><span class="line">oxx java TestSocket                       │hello from client</span><br><span class="line">step1: new ServerSocket(8090)             │</span><br><span class="line">step2: client   45520                     │</span><br><span class="line">hello from client                         │</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ ls</span><br><span class="line">ooxx.2494  ooxx.2496  ooxx.2498  ooxx.2500  ooxx.2502  ooxx.2505         TestSocket.java</span><br><span class="line">ooxx.2495  ooxx.2497  ooxx.2499  ooxx.2501  ooxx.2503  TestSocket.class</span><br><span class="line">ck@test104:~/SocketTest$ grep &#x27;write&#x27; *</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(1, &quot;step1: new ServerSocket(8090)&quot;, 29) = 29</span><br><span class="line">ooxx.2495:write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(1, &quot;step2: client\t45520&quot;, 19)    = 19</span><br><span class="line">ooxx.2495:write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">ooxx.2505:write(1, &quot;hello from client&quot;, 17)       = 17</span><br><span class="line">ooxx.2505:write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">ck@test104:~/SocketTest$ jps</span><br><span class="line">2494 TestSocket</span><br><span class="line">2527 Jps</span><br><span class="line">ck@test104:~/SocketTest$ netstat -atp | grep 8090</span><br><span class="line">(Not all processes could be identified, non-owned process info</span><br><span class="line"> will not be shown, you would have to be root to see it all.)</span><br><span class="line">tcp        0      0 localhost:45520         localhost:8090          ESTABLISHED 2504/nc</span><br><span class="line">tcp6       0      0 [::]:8090               [::]:*                  LISTEN      2494/java</span><br><span class="line">tcp6       0      0 127.0.0.1:8090          127.0.0.1:45520         ESTABLISHED 2494/java</span><br></pre></td></tr></table></figure>
+
+<p>socket shared in all threads</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ ll /proc/2494/fd</span><br><span class="line">total 0</span><br><span class="line">dr-x------ 2 ck ck  0 Jan 29 12:27 ./</span><br><span class="line">dr-xr-xr-x 9 ck ck  0 Jan 29 12:21 ../</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 0 -&gt; /dev/pts/0</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 1 -&gt; /dev/pts/0</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 10 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/icedtea-sound.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 11 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/cldrdata.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 12 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/dnsns.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 13 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/jaccess.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 14 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/zipfs.jar</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 15 -&gt; &#x27;socket:[33882]&#x27;</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 16 -&gt; &#x27;socket:[33884]&#x27;</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 17 -&gt; &#x27;socket:[33893]&#x27;</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 2 -&gt; /dev/pts/0</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 3 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 4 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jfr.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 5 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunjce_provider.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 6 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunec.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 7 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/localedata.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 8 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunpkcs11.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 9 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/nashorn.jar</span><br><span class="line">ck@test104:~/SocketTest$ ps -aL | grep 2494</span><br><span class="line">   2494    2494 pts/0    00:00:00 java</span><br><span class="line">   2494    2495 pts/0    00:00:00 java</span><br><span class="line">   2494    2496 pts/0    00:00:00 VM Thread</span><br><span class="line">   2494    2497 pts/0    00:00:00 Reference Handl</span><br><span class="line">   2494    2498 pts/0    00:00:00 Finalizer</span><br><span class="line">   2494    2499 pts/0    00:00:00 Signal Dispatch</span><br><span class="line">   2494    2500 pts/0    00:00:00 C2 CompilerThre</span><br><span class="line">   2494    2501 pts/0    00:00:00 C1 CompilerThre</span><br><span class="line">   2494    2502 pts/0    00:00:00 Service Thread</span><br><span class="line">   2494    2503 pts/0    00:00:00 VM Periodic Tas</span><br><span class="line">   2494    2505 pts/0    00:00:00 Thread-0</span><br></pre></td></tr></table></figure>
+
+<p>java 里面的东西就是对系统调用的包装<br>连接的socket: 17 -&gt; 得到文件描述符</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ grep &#x27;accept&#x27; *</span><br><span class="line">ooxx.2495:accept(16, &#123;sa_family=AF_INET6, sin6_port=htons(45520), inet_pton(AF_INET6, &quot;::ffff:127.0.0.1&quot;, &amp;sin6_addr), sin6_flowinfo=htonl(0), sin6_scope_id=0&#125;, [28]) = 17</span><br><span class="line">Binary file TestSocket.class matches</span><br><span class="line">TestSocket.java:      Socket client = server.accept();</span><br></pre></td></tr></table></figure>
+
+<p>man accept</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RETURN VALUE</span><br><span class="line">       On  success,  these  system  calls  return  a nonnegative integer that is a file descriptor for the accepted</span><br><span class="line">       socket.  On error, -1 is returned, errno is set appropriately, and addrlen is left unchanged.</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/IO_multiplexing/thread.png"></p>
+<p>Java 1.2 之前创建的线程为用户级线程，程序员们为JVM开发了自己的一个线程调度内核，而到操作系统层面就是用户空间内的线程实现；1.2及以后，JVM选择了更加稳健且方便使用的操作系统原生的线程模型，通过系统调用，将程序的线程交给了操作系统内核进行调度。也就是说，现在的Java中线程的本质，其实就是操作系统中的线程，Linux下是基于pthread库实现的轻量级进程，Windows下原生的系统32API提供系统调用从而实现多线程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ grep &#x27;fork&#x27; *</span><br><span class="line">ck@test104:~/SocketTest$ grep &#x27;clone&#x27; *</span><br><span class="line">ooxx.2494:clone(child_stack=0x7fbcaed3efb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcaed3f9d0, tls=0x7fbcaed3f700, child_tidptr=0x7fbcaed3f9d0) = 2495</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcadc20fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcadc219d0, tls=0x7fbcadc21700, child_tidptr=0x7fbcadc219d0) = 2496</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcadb1ffb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcadb209d0, tls=0x7fbcadb20700, child_tidptr=0x7fbcadb209d0) = 2497</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcada1efb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcada1f9d0, tls=0x7fbcada1f700, child_tidptr=0x7fbcada1f9d0) = 2498</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad637fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad6389d0, tls=0x7fbcad638700, child_tidptr=0x7fbcad6389d0) = 2499</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad536fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad5379d0, tls=0x7fbcad537700, child_tidptr=0x7fbcad5379d0) = 2500</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad435fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad4369d0, tls=0x7fbcad436700, child_tidptr=0x7fbcad4369d0) = 2501</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad334fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad3359d0, tls=0x7fbcad335700, child_tidptr=0x7fbcad3359d0) = 2502</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad233fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad2349d0, tls=0x7fbcad234700, child_tidptr=0x7fbcad2349d0) = 2503</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad080fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad0819d0, tls=0x7fbcad081700, child_tidptr=0x7fbcad0819d0) = 2505</span><br></pre></td></tr></table></figure>
+
+<p>主方法调用poll</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ tail -f ooxx.2495</span><br><span class="line">futex(0x7fbca80b1078, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">futex(0x7fbca80b1028, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">mprotect(0x7fbca8194000, 4096, PROT_READ|PROT_WRITE) = 0</span><br><span class="line">mprotect(0x7fbca8195000, 4096, PROT_READ|PROT_WRITE) = 0</span><br><span class="line">mmap(NULL, 1052672, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7fbcacf81000</span><br><span class="line">clone(child_stack=0x7fbcad080fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad0819d0, tls=0x7fbcad081700, child_tidptr=0x7fbcad0819d0) = 2505</span><br><span class="line">futex(0x7fbca800b278, FUTEX_WAIT_PRIVATE, 0, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAIT_PRIVATE, 2, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 0</span><br><span class="line">poll([&#123;fd=16, events=POLLIN|POLLERR&#125;], 1, -1</span><br></pre></td></tr></table></figure>
+
+<p>nc localhost 8090 新建一个tcp连接, socket file descriptor = 18, clone 一个新线程2706 等待输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ tail -f ooxx.2495</span><br><span class="line">futex(0x7fbca80b1078, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">futex(0x7fbca80b1028, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">mprotect(0x7fbca8194000, 4096, PROT_READ|PROT_WRITE) = 0</span><br><span class="line">mprotect(0x7fbca8195000, 4096, PROT_READ|PROT_WRITE) = 0</span><br><span class="line">mmap(NULL, 1052672, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7fbcacf81000</span><br><span class="line">clone(child_stack=0x7fbcad080fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad0819d0, tls=0x7fbcad081700, child_tidptr=0x7fbcad0819d0) = 2505</span><br><span class="line">futex(0x7fbca800b278, FUTEX_WAIT_PRIVATE, 0, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAIT_PRIVATE, 2, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 0</span><br><span class="line">poll([&#123;fd=16, events=POLLIN|POLLERR&#125;], 1, -1) = 1 ([&#123;fd=16, revents=POLLIN&#125;])</span><br><span class="line">accept(16, &#123;sa_family=AF_INET6, sin6_port=htons(45522), inet_pton(AF_INET6, &quot;::ffff:127.0.0.1&quot;, &amp;sin6_addr), sin6_flowinfo=htonl(0), sin6_scope_id=0&#125;, [28]) = 18</span><br><span class="line">fcntl(18, F_GETFL)                      = 0x2 (flags O_RDWR)</span><br><span class="line">fcntl(18, F_SETFL, O_RDWR)              = 0</span><br><span class="line">write(1, &quot;step2: client\t45522&quot;, 19)    = 19</span><br><span class="line">write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">mmap(NULL, 1052672, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7fbcace80000</span><br><span class="line">clone(child_stack=0x7fbcacf7ffb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcacf809d0, tls=0x7fbcacf80700, child_tidptr=0x7fbcacf809d0) = 2706</span><br><span class="line">futex(0x7fbca800b27c, FUTEX_WAIT_PRIVATE, 0, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAIT_PRIVATE, 2, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 0</span><br><span class="line">poll([&#123;fd=16, events=POLLIN|POLLERR&#125;], 1, -1</span><br></pre></td></tr></table></figure>
+
+<p>也阻塞住了，等待输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ tail -f ooxx.2706</span><br><span class="line">rt_sigprocmask(SIG_UNBLOCK, [HUP INT ILL BUS FPE SEGV USR2 TERM], NULL, 8) = 0</span><br><span class="line">rt_sigprocmask(SIG_BLOCK, [QUIT], NULL, 8) = 0</span><br><span class="line">futex(0x7fbca800b27c, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">sched_getaffinity(2706, 32, [0])        = 8</span><br><span class="line">sched_getaffinity(2706, 32, [0])        = 8</span><br><span class="line">mmap(0x7fbcace80000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fbcace80000</span><br><span class="line">mprotect(0x7fbcace80000, 12288, PROT_NONE) = 0</span><br><span class="line">prctl(PR_SET_NAME, &quot;Thread-1&quot;)          = 0</span><br><span class="line">recvfrom(18,</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/test$ ps -aL | grep 2494</span><br><span class="line">   2494    2494 pts/0    00:00:00 java</span><br><span class="line">   2494    2495 pts/0    00:00:00 java</span><br><span class="line">   2494    2496 pts/0    00:00:00 VM Thread</span><br><span class="line">   2494    2497 pts/0    00:00:00 Reference Handl</span><br><span class="line">   2494    2498 pts/0    00:00:00 Finalizer</span><br><span class="line">   2494    2499 pts/0    00:00:00 Signal Dispatch</span><br><span class="line">   2494    2500 pts/0    00:00:00 C2 CompilerThre</span><br><span class="line">   2494    2501 pts/0    00:00:00 C1 CompilerThre</span><br><span class="line">   2494    2502 pts/0    00:00:00 Service Thread</span><br><span class="line">   2494    2503 pts/0    00:00:02 VM Periodic Tas</span><br><span class="line">   2494    2505 pts/0    00:00:00 Thread-0</span><br><span class="line">   2494    2706 pts/0    00:00:00 Thread-1</span><br></pre></td></tr></table></figure>
+
+<p>发送数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/test$ nc localhost 8090</span><br><span class="line">second client msg</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ tail -f ooxx.2706</span><br><span class="line">rt_sigprocmask(SIG_UNBLOCK, [HUP INT ILL BUS FPE SEGV USR2 TERM], NULL, 8) = 0</span><br><span class="line">rt_sigprocmask(SIG_BLOCK, [QUIT], NULL, 8) = 0</span><br><span class="line">futex(0x7fbca800b27c, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">sched_getaffinity(2706, 32, [0])        = 8</span><br><span class="line">sched_getaffinity(2706, 32, [0])        = 8</span><br><span class="line">mmap(0x7fbcace80000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fbcace80000</span><br><span class="line">mprotect(0x7fbcace80000, 12288, PROT_NONE) = 0</span><br><span class="line">prctl(PR_SET_NAME, &quot;Thread-1&quot;)          = 0</span><br><span class="line">recvfrom(18, &quot;second client msg\n&quot;, 8192, 0, NULL, NULL) = 18</span><br><span class="line">ioctl(18, FIONREAD, [0])                = 0</span><br><span class="line">write(1, &quot;second client msg&quot;, 17)       = 17</span><br><span class="line">write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">recvfrom(18,</span><br></pre></td></tr></table></figure>
+
+
+<p>每个线程对应一个client<br>BIO: blcok IO,阻塞IO<br>因为阻塞才抛出这么多线程</p>
+<h2 id="select"><a href="#select" class="headerlink" title="select"></a>select</h2><p>NIO 一个线程解决N个客户端的问题<br>Java NIO: new IO<br>操作系统NIO，non-blocking IO</p>
+<p>需要修改内核，增加新的系统调用 select<br>select: 多路复用器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select(fds) // O(1)</span><br><span class="line">kernel // 主动遍历 O(n)</span><br><span class="line">recvfrom // O(m)</span><br></pre></td></tr></table></figure>
+
+<p>弊端：1 每次重复传递数据 2 每次调用要触发内核遍历</p>
+<h2 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h2><p><img src="/images/IO_multiplexing/epoll.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/29/IO-Multiplexing/" data-id="ckqhp9u6k00053ot0cyywg6ym" data-title="I/O 多路复用" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-VirtualBox" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/17/VirtualBox/" class="article-date">
+  <time class="dt-published" datetime="2021-01-18T06:38:46.000Z" itemprop="datePublished">2021-01-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2021/01/17/VirtualBox/">Mac通过Mosh连接虚拟机</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="VirtualBox"><a href="#VirtualBox" class="headerlink" title="VirtualBox"></a>VirtualBox</h2><p>下载Ubuntu Server并安装<br>配置shared folder,映射本机文件<br>headless启动ubuntu server实例</p>
+<h2 id="Mosh-连接"><a href="#Mosh-连接" class="headerlink" title="Mosh 连接"></a>Mosh 连接</h2><p>Mac安装mosh客户端</p>
+<p>Ubuntu安装mosh</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apt-get update</span><br><span class="line">apt-get install -y mosh</span><br><span class="line">mosh username@ip</span><br></pre></td></tr></table></figure>
+<p>mosh不会像ssh那样过一会儿断开，推荐使用mosh</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/17/VirtualBox/" data-id="ckqhp9u6t000p3ot099s1a2u5" data-title="Mac通过Mosh连接虚拟机" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Virtual-machine" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/11/Virtual-machine/" class="article-date">
+  <time class="dt-published" datetime="2020-12-12T02:00:09.000Z" itemprop="datePublished">2020-12-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/11/Virtual-machine/">Virtual machine</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><a target="_blank" rel="noopener" href="https://markfaction.wordpress.com/2012/07/15/stack-based-vs-register-based-virtual-machine-architecture-and-the-dalvik-vm/">learn from this great article</a></p>
+<h2 id="Stack-Based-Virtual-Machines"><a href="#Stack-Based-Virtual-Machines" class="headerlink" title="Stack Based Virtual Machines"></a><strong>Stack Based Virtual Machines</strong></h2><p>eg. Java Virtual Machine, the .Net CLR</p>
+<blockquote>
+<p>A stack based virtual machine implements the general features described as needed by a virtual machine in the points above, but the memory structure where the operands are stored is a stack data structure. Operations are carried out by popping data from the stack, processing them and pushing in back the results in LIFO (Last in First Out) fashion.</p>
+</blockquote>
+<h2 id="Register-Based-Virtual-Machines"><a href="#Register-Based-Virtual-Machines" class="headerlink" title="Register Based Virtual Machines"></a><strong>Register Based Virtual Machines</strong></h2><p>eg. Lua VM, and the Dalvik VM</p>
+<blockquote>
+<p>In the register based implementation of a virtual machine, the data structure where the operands are stored is based on the registers of the CPU. There is no PUSH or POP operations here, but the instructions need to contain the addresses (the registers) of the operands. That is, the operands for the instructions are explicitly addressed in the instruction, unlike the stack based model where we had a stack pointer to point to the operand.</p>
+</blockquote>
+<h3 id="Dalvik"><a href="#Dalvik" class="headerlink" title="Dalvik"></a>Dalvik</h3><blockquote>
+<p>Dalvik differs from the Java virtual machine in that it executes Dalvik byte code, and not the traditional Java byte code. There is an intermediary step between the Java compiler and the Dalvik VM, that converts the Java byte code to Dalvik byte code, and this step is taken up by the DEX compiler.</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/11/Virtual-machine/" data-id="ckqhp9u6r000n3ot09k841plg" data-title="Virtual machine" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Segment-tree" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/11/Segment-tree/" class="article-date">
+  <time class="dt-published" datetime="2020-12-11T20:49:43.000Z" itemprop="datePublished">2020-12-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/11/Segment-tree/">线段树模板</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br></pre></td><td class="code"><pre><span class="line">class segtree &#123;</span><br><span class="line">	public:</span><br><span class="line">		struct node &#123;</span><br><span class="line">			// don&#x27;t forget to set default value (used for leaves);</span><br><span class="line">			// not necessarily neutral element</span><br><span class="line">			// ... a = ...;</span><br><span class="line">			int mx = 0;</span><br><span class="line">			int add = 0;</span><br><span class="line">			int cnt = 1;</span><br><span class="line"></span><br><span class="line">			// void apply(int l, int r, ... v) &#123;</span><br><span class="line">			// 	...</span><br><span class="line">			// &#125;</span><br><span class="line"></span><br><span class="line">			void apply(int l, int r, int v) &#123;</span><br><span class="line">				add += v;</span><br><span class="line">				mx += v;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;;</span><br><span class="line"></span><br><span class="line">	node unite(const node&amp;a, const node&amp;b) const &#123;</span><br><span class="line">		node res;</span><br><span class="line">		// ...</span><br><span class="line">		res.mx = max(a.mx, b.mx);</span><br><span class="line">		res.cnt = (res.mx == a.mx ? a.cnt : 0) + (res.mx == b.mx ? b.cnt : 0);</span><br><span class="line">		return res;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	inline void push(int x, int l, int r) &#123;</span><br><span class="line">		int y = (l + r) &gt;&gt; 1;</span><br><span class="line">		int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">		// push from x into (x + 1) and z</span><br><span class="line">		// ...</span><br><span class="line">		if (tree[x].add != 0) &#123;</span><br><span class="line">			tree[x + 1].apply(l, y, tree[x].add);</span><br><span class="line">			tree[z].apply(y + 1, r, tree[x].add);</span><br><span class="line">			tree[x].add = 0;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	inline void pull(int x, int z) &#123;</span><br><span class="line">		tree[x] = unite(tree[x + 1], tree[z]);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	int n;</span><br><span class="line">	vector&lt;node&gt; tree;</span><br><span class="line"></span><br><span class="line">	void build(int x, int l, int r) &#123;</span><br><span class="line">		if (l == r) &#123;</span><br><span class="line">			return;</span><br><span class="line">		&#125;</span><br><span class="line">		int y = (l + r) &gt;&gt; 1;</span><br><span class="line">		int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">		build(x + 1, l, y);</span><br><span class="line">		build(z, y + 1, r);</span><br><span class="line">		pull(x, z);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	 template &lt;typename M&gt;</span><br><span class="line">  void build(int x, int l, int r, const vector&lt;M&gt; &amp;v) &#123;</span><br><span class="line">    if (l == r) &#123;</span><br><span class="line">      tree[x].apply(l, r, v[l]);</span><br><span class="line">      return;</span><br><span class="line">    &#125;</span><br><span class="line">    int y = (l + r) &gt;&gt; 1;</span><br><span class="line">    int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">    build(x + 1, l, y, v);</span><br><span class="line">    build(z, y + 1, r, v);</span><br><span class="line">    pull(x, z);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  node get(int x, int l, int r, int ll, int rr) &#123;</span><br><span class="line">    if (ll &lt;= l &amp;&amp; r &lt;= rr) &#123;</span><br><span class="line">      return tree[x];</span><br><span class="line">    &#125;</span><br><span class="line">    int y = (l + r) &gt;&gt; 1;</span><br><span class="line">    int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">    push(x, l, r);</span><br><span class="line">    node res&#123;&#125;;</span><br><span class="line">    if (rr &lt;= y) &#123;</span><br><span class="line">      res = get(x + 1, l, y, ll, rr);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      if (ll &gt; y) &#123;</span><br><span class="line">        res = get(z, y + 1, r, ll, rr);</span><br><span class="line">      &#125; else &#123;</span><br><span class="line">        res = unite(get(x + 1, l, y, ll, rr), get(z, y + 1, r, ll, rr));</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    pull(x, z);</span><br><span class="line">    return res;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  template &lt;typename... M&gt;</span><br><span class="line">  void modify(int x, int l, int r, int ll, int rr, const M&amp;... v) &#123;</span><br><span class="line">    if (ll &lt;= l &amp;&amp; r &lt;= rr) &#123;</span><br><span class="line">      tree[x].apply(l, r, v...);</span><br><span class="line">      return;</span><br><span class="line">    &#125;</span><br><span class="line">    int y = (l + r) &gt;&gt; 1;</span><br><span class="line">    int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">    push(x, l, r);</span><br><span class="line">    if (ll &lt;= y) &#123;</span><br><span class="line">      modify(x + 1, l, y, ll, rr, v...);</span><br><span class="line">    &#125;</span><br><span class="line">    if (rr &gt; y) &#123;</span><br><span class="line">      modify(z, y + 1, r, ll, rr, v...);</span><br><span class="line">    &#125;</span><br><span class="line">    pull(x, z);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  int find_first_knowingly(int x, int l, int r, const function&lt;bool(const node&amp;)&gt; &amp;f) &#123;</span><br><span class="line">    if (l == r) &#123;</span><br><span class="line">      return l;</span><br><span class="line">    &#125;</span><br><span class="line">    push(x, l, r);</span><br><span class="line">    int y = (l + r) &gt;&gt; 1;</span><br><span class="line">    int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">    int res;</span><br><span class="line">    if (f(tree[x + 1])) &#123;</span><br><span class="line">      res = find_first_knowingly(x + 1, l, y, f);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      res = find_first_knowingly(z, y + 1, r, f);</span><br><span class="line">    &#125;</span><br><span class="line">    pull(x, z);</span><br><span class="line">    return res;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  int find_first(int x, int l, int r, int ll, int rr, const function&lt;bool(const node&amp;)&gt; &amp;f) &#123;</span><br><span class="line">    if (ll &lt;= l &amp;&amp; r &lt;= rr) &#123;</span><br><span class="line">      if (!f(tree[x])) &#123;</span><br><span class="line">        return -1;</span><br><span class="line">      &#125;</span><br><span class="line">      return find_first_knowingly(x, l, r, f);</span><br><span class="line">    &#125;</span><br><span class="line">    push(x, l, r);</span><br><span class="line">    int y = (l + r) &gt;&gt; 1;</span><br><span class="line">    int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">    int res = -1;</span><br><span class="line">    if (ll &lt;= y) &#123;</span><br><span class="line">      res = find_first(x + 1, l, y, ll, rr, f);</span><br><span class="line">    &#125;</span><br><span class="line">    if (rr &gt; y &amp;&amp; res == -1) &#123;</span><br><span class="line">      res = find_first(z, y + 1, r, ll, rr, f);</span><br><span class="line">    &#125;</span><br><span class="line">    pull(x, z);</span><br><span class="line">    return res;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  int find_last_knowingly(int x, int l, int r, const function&lt;bool(const node&amp;)&gt; &amp;f) &#123;</span><br><span class="line">    if (l == r) &#123;</span><br><span class="line">      return l;</span><br><span class="line">    &#125;</span><br><span class="line">    push(x, l, r);</span><br><span class="line">    int y = (l + r) &gt;&gt; 1;</span><br><span class="line">    int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">    int res;</span><br><span class="line">    if (f(tree[z])) &#123;</span><br><span class="line">      res = find_last_knowingly(z, y + 1, r, f);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      res = find_last_knowingly(x + 1, l, y, f);</span><br><span class="line">    &#125;</span><br><span class="line">    pull(x, z);</span><br><span class="line">    return res;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  int find_last(int x, int l, int r, int ll, int rr, const function&lt;bool(const node&amp;)&gt; &amp;f) &#123;</span><br><span class="line">    if (ll &lt;= l &amp;&amp; r &lt;= rr) &#123;</span><br><span class="line">      if (!f(tree[x])) &#123;</span><br><span class="line">        return -1;</span><br><span class="line">      &#125;</span><br><span class="line">      return find_last_knowingly(x, l, r, f);</span><br><span class="line">    &#125;</span><br><span class="line">    push(x, l, r);</span><br><span class="line">    int y = (l + r) &gt;&gt; 1;</span><br><span class="line">    int z = x + ((y - l + 1) &lt;&lt; 1);</span><br><span class="line">    int res = -1;</span><br><span class="line">    if (rr &gt; y) &#123;</span><br><span class="line">      res = find_last(z, y + 1, r, ll, rr, f);</span><br><span class="line">    &#125;</span><br><span class="line">    if (ll &lt;= y &amp;&amp; res == -1) &#123;</span><br><span class="line">      res = find_last(x + 1, l, y, ll, rr, f);</span><br><span class="line">    &#125;</span><br><span class="line">    pull(x, z);</span><br><span class="line">    return res;</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  segtree(int _n) : n(_n) &#123;</span><br><span class="line">    assert(n &gt; 0);</span><br><span class="line">    tree.resize(2 * n - 1);</span><br><span class="line">    build(0, 0, n - 1);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  template &lt;typename M&gt;</span><br><span class="line">  segtree(const vector&lt;M&gt; &amp;v) &#123;</span><br><span class="line">    n = v.size();</span><br><span class="line">    assert(n &gt; 0);</span><br><span class="line">    tree.resize(2 * n - 1);</span><br><span class="line">    build(0, 0, n - 1, v);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  node get(int ll, int rr) &#123;</span><br><span class="line">    assert(0 &lt;= ll &amp;&amp; ll &lt;= rr &amp;&amp; rr &lt;= n - 1);</span><br><span class="line">    return get(0, 0, n - 1, ll, rr);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  node get(int p) &#123;</span><br><span class="line">    assert(0 &lt;= p &amp;&amp; p &lt;= n - 1);</span><br><span class="line">    return get(0, 0, n - 1, p, p);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  template &lt;typename... M&gt;</span><br><span class="line">  void modify(int ll, int rr, const M&amp;... v) &#123;</span><br><span class="line">    assert(0 &lt;= ll &amp;&amp; ll &lt;= rr &amp;&amp; rr &lt;= n - 1);</span><br><span class="line">    modify(0, 0, n - 1, ll, rr, v...);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  // find_first and find_last call all FALSE elements</span><br><span class="line">  // to the left (right) of the sought position exactly once</span><br><span class="line"> </span><br><span class="line">  int find_first(int ll, int rr, const function&lt;bool(const node&amp;)&gt; &amp;f) &#123;</span><br><span class="line">    assert(0 &lt;= ll &amp;&amp; ll &lt;= rr &amp;&amp; rr &lt;= n - 1);</span><br><span class="line">    return find_first(0, 0, n - 1, ll, rr, f);</span><br><span class="line">  &#125;</span><br><span class="line"> </span><br><span class="line">  int find_last(int ll, int rr, const function&lt;bool(const node&amp;)&gt; &amp;f) &#123;</span><br><span class="line">    assert(0 &lt;= ll &amp;&amp; ll &lt;= rr &amp;&amp; rr &lt;= n - 1);</span><br><span class="line">    return find_last(0, 0, n - 1, ll, rr, f);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;;</span><br><span class="line">int _, n;</span><br><span class="line">int main() &#123;</span><br><span class="line">    ios::sync_with_stdio(false);</span><br><span class="line">    cin.tie(0);</span><br><span class="line">	cin &gt;&gt; n;</span><br><span class="line">	vector&lt;int&gt; a(n);</span><br><span class="line">	for (int i = 0; i &lt; n; i++) &#123;</span><br><span class="line">		cin &gt;&gt; a[i];</span><br><span class="line">		--a[i];</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	segtree st(n);</span><br><span class="line">	vector&lt;vector&lt;int&gt;&gt; pos(n);</span><br><span class="line">	for (int i = 0; i &lt; n; i++) &#123;</span><br><span class="line">		pos[i].push_back(n);</span><br><span class="line">		st.modify(0, n - 1, +1);</span><br><span class="line">	&#125;</span><br><span class="line">	long long ans = 0;</span><br><span class="line">	for (int l = n - 1; l &gt;= 0; l--) &#123;</span><br><span class="line">		int v = a[l];</span><br><span class="line">		if (pos[v].size() &gt;= 4) &#123;</span><br><span class="line">			int third = pos[v][pos[v].size() - 3];</span><br><span class="line">			int forth = pos[v][pos[v].size() - 4];</span><br><span class="line">			st.modify(third, forth - 1, -1);</span><br><span class="line">		&#125;</span><br><span class="line">		st.modify(0, pos[v].back() - 1, -1);</span><br><span class="line">		pos[v].push_back(l);</span><br><span class="line">		if (pos[v].size() &gt;= 4) &#123;</span><br><span class="line">			int third = pos[v][pos[v].size() - 3];</span><br><span class="line">			int forth = pos[v][pos[v].size() - 4];</span><br><span class="line">			st.modify(third, forth - 1, +1);</span><br><span class="line">		&#125;</span><br><span class="line">		if (pos[v].back() &gt; 0) &#123;</span><br><span class="line">			st.modify(0, pos[v].back() - 1, +1);</span><br><span class="line">		&#125;</span><br><span class="line">		auto nd = st.get(l, n - 1);</span><br><span class="line">		if (nd.mx == n) &#123;</span><br><span class="line">			ans += nd.cnt;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	cout &lt;&lt; ans &lt;&lt; endl;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/11/Segment-tree/" data-id="ckqhp9u6o000d3ot0a5ad2y64" data-title="线段树模板" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-JVM-lock" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/10/JVM-lock/" class="article-date">
+  <time class="dt-published" datetime="2020-12-11T01:57:43.000Z" itemprop="datePublished">2020-12-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/10/JVM-lock/">JVM lock</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="对象存储布局"><a href="#对象存储布局" class="headerlink" title="对象存储布局"></a>对象存储布局</h2><ul>
+<li><p>markword: 8 bytes</p>
+</li>
+<li><p>class pointer: 4 bytes (java 运行默认参数 开启 compress class pointer</p>
+<p>64 地址8字节， 压缩为4字节)</p>
+</li>
+<li><p>instance data</p>
+</li>
+<li><p>padding对齐</p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/10/JVM-lock/" data-id="ckqhp9u6m000a3ot02erfdzw3" data-title="JVM lock" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Spring-IOC" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/02/Spring-IOC/" class="article-date">
+  <time class="dt-published" datetime="2020-12-03T04:26:37.000Z" itemprop="datePublished">2020-12-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/02/Spring-IOC/">Spring IOC</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p>ioc就是绑定接口和类，使用构造函数或者get set方法将对象自动依赖注入，aop就是动态代理模式</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1. 配置Bean</span><br><span class="line">&lt;bean class=&quot;&quot;&gt; @Bean #Component</span><br><span class="line"></span><br><span class="line">2. 加载Spring容器</span><br><span class="line">xml: new ClassPathXmlApplicationContext(&quot;xml&quot;)</span><br><span class="line">@: new AnnotationConfigApplicationContext(配置类)</span><br><span class="line"></span><br><span class="line">3.</span><br><span class="line">使用Bean</span><br><span class="line">spring.getBean(&quot;user&quot;)</span><br></pre></td></tr></table></figure>
+<p><img src="/images/spring_ioc/init.png"></p>
+<h2 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h2><ul>
+<li><p>Dependency injection<br><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Dependency_injection">https://en.wikipedia.org/wiki/Dependency_injection</a></p>
+<blockquote>
+<p>Dependency injection is one form of the broader technique of inversion of control. A client who wants to call some services should not have to know how to construct those services. Instead, the client delegates the responsibility of providing its services to external code (the injector). The client is not allowed to call the injector code; it is the injector that constructs the services. The injector then injects (passes) the services into the client which might already exist or may also be constructed by the injector. The client then uses the services. This means the client does not need to know about the injector, how to construct the services, or even which actual services it is using. The client only needs to know about the intrinsic interfaces of the services because these define how the client may use the services. <strong>This separates the responsibility of “use” from the responsibility of “construction”.</strong></p>
+</blockquote>
+</li>
+<li><p>IoC vs DI<br><a target="_blank" rel="noopener" href="https://martinfowler.com/articles/injection.html#InversionOfControl">https://martinfowler.com/articles/injection.html#InversionOfControl</a></p>
+<blockquote>
+<p>As a result I think we need a more specific name for this pattern. Inversion of Control is too generic a term, and thus people find it confusing. As a result with a lot of discussion with various IoC advocates we settled on the name Dependency Injection.</p>
+</blockquote>
+</li>
+<li><p>BeanFactory getBean 和 ApplicationContext getBean 都可以调用getBean,都可以作为容器，二者区别是什么？</p>
+</li>
+</ul>
+<p>Application 包含 BeanFactory<br>BeanFactory 职责单一，简单工厂模式，仅仅负责生产Bean getBean<br>Application 更多的负责对外打交道、解析配置、配置文件怎么生产Bean原材料，相关Spring ioc加载的一切相关配套服务（监听器，对外扩展接口的调用）</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/02/Spring-IOC/" data-id="ckqhp9u6o000f3ot08r594dgl" data-title="Spring IOC" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ACM/" style="font-size: 15px;">ACM</a> <a href="/tags/CTF/" style="font-size: 12.5px;">CTF</a> <a href="/tags/JVM/" style="font-size: 17.5px;">JVM</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Web/" style="font-size: 15px;">Web</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/13/python/">Python</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/v2ray/">搭梯子</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/SuffixArray/">SuffixArray</a>
+          </li>
+        
+          <li>
+            <a href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

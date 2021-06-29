@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>I/O 多路复用 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="https:&#x2F;&#x2F;www.bilibili.com&#x2F;video&#x2F;BV11K4y1C7rm?p&#x3D;2  12345678910111213141516171819202122232425import java.io.*;import java.net.ServerSocket;import java.net.Socket;public class TestSocket &amp;#123;    public">
+<meta property="og:type" content="article">
+<meta property="og:title" content="I&#x2F;O 多路复用">
+<meta property="og:url" content="http://example.com/2021/01/29/IO-Multiplexing/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="https:&#x2F;&#x2F;www.bilibili.com&#x2F;video&#x2F;BV11K4y1C7rm?p&#x3D;2  12345678910111213141516171819202122232425import java.io.*;import java.net.ServerSocket;import java.net.Socket;public class TestSocket &amp;#123;    public">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/images/IO_multiplexing/intro.png">
+<meta property="og:image" content="http://example.com/images/IO_multiplexing/thread.png">
+<meta property="og:image" content="http://example.com/images/IO_multiplexing/epoll.png">
+<meta property="article:published_time" content="2021-01-30T04:02:23.000Z">
+<meta property="article:modified_time" content="2021-06-29T06:52:50.855Z">
+<meta property="article:author" content="John Doe">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/IO_multiplexing/intro.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-IO-Multiplexing" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2021/01/29/IO-Multiplexing/" class="article-date">
+  <time class="dt-published" datetime="2021-01-30T04:02:23.000Z" itemprop="datePublished">2021-01-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      I/O 多路复用
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV11K4y1C7rm?p=2">https://www.bilibili.com/video/BV11K4y1C7rm?p=2</a></p>
+<p><img src="/images/IO_multiplexing/intro.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">import java.io.*;</span><br><span class="line">import java.net.ServerSocket;</span><br><span class="line">import java.net.Socket;</span><br><span class="line"></span><br><span class="line">public class TestSocket &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        ServerSocket server = new ServerSocket(8090);</span><br><span class="line">        System.out.println(&quot;step1: new ServerSocket(8090)&quot;);</span><br><span class="line">        while (true) &#123;</span><br><span class="line">            Socket client = server.accept();</span><br><span class="line">            System.out.println(&quot;step2: client\t&quot; + client.getPort());</span><br><span class="line">            new Thread(() -&gt; &#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    InputStream in = client.getInputStream();</span><br><span class="line">                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));</span><br><span class="line">                    while (true) &#123;</span><br><span class="line">                        System.out.println(reader.readLine());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; catch (IOException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;).start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>-ff 对fork出来的线程/进程 也进行跟踪     系统调用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">strace -ff -o ./ooxx java TestSocket</span><br></pre></td></tr></table></figure>
+
+<p>server | client</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ strace -ff -o ./o│ck@test104:~/SocketTest$ nc localhost 8090</span><br><span class="line">oxx java TestSocket                       │hello from client</span><br><span class="line">step1: new ServerSocket(8090)             │</span><br><span class="line">step2: client   45520                     │</span><br><span class="line">hello from client                         │</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ ls</span><br><span class="line">ooxx.2494  ooxx.2496  ooxx.2498  ooxx.2500  ooxx.2502  ooxx.2505         TestSocket.java</span><br><span class="line">ooxx.2495  ooxx.2497  ooxx.2499  ooxx.2501  ooxx.2503  TestSocket.class</span><br><span class="line">ck@test104:~/SocketTest$ grep &#x27;write&#x27; *</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(5, &quot;\0&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(1, &quot;step1: new ServerSocket(8090)&quot;, 29) = 29</span><br><span class="line">ooxx.2495:write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">ooxx.2495:write(1, &quot;step2: client\t45520&quot;, 19)    = 19</span><br><span class="line">ooxx.2495:write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">ooxx.2505:write(1, &quot;hello from client&quot;, 17)       = 17</span><br><span class="line">ooxx.2505:write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">ck@test104:~/SocketTest$ jps</span><br><span class="line">2494 TestSocket</span><br><span class="line">2527 Jps</span><br><span class="line">ck@test104:~/SocketTest$ netstat -atp | grep 8090</span><br><span class="line">(Not all processes could be identified, non-owned process info</span><br><span class="line"> will not be shown, you would have to be root to see it all.)</span><br><span class="line">tcp        0      0 localhost:45520         localhost:8090          ESTABLISHED 2504/nc</span><br><span class="line">tcp6       0      0 [::]:8090               [::]:*                  LISTEN      2494/java</span><br><span class="line">tcp6       0      0 127.0.0.1:8090          127.0.0.1:45520         ESTABLISHED 2494/java</span><br></pre></td></tr></table></figure>
+
+<p>socket shared in all threads</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ ll /proc/2494/fd</span><br><span class="line">total 0</span><br><span class="line">dr-x------ 2 ck ck  0 Jan 29 12:27 ./</span><br><span class="line">dr-xr-xr-x 9 ck ck  0 Jan 29 12:21 ../</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 0 -&gt; /dev/pts/0</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 1 -&gt; /dev/pts/0</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 10 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/icedtea-sound.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 11 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/cldrdata.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 12 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/dnsns.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 13 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/jaccess.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 14 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/zipfs.jar</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 15 -&gt; &#x27;socket:[33882]&#x27;</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 16 -&gt; &#x27;socket:[33884]&#x27;</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 17 -&gt; &#x27;socket:[33893]&#x27;</span><br><span class="line">lrwx------ 1 ck ck 64 Jan 29 12:27 2 -&gt; /dev/pts/0</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 3 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/rt.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 4 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/jfr.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 5 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunjce_provider.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 6 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunec.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 7 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/localedata.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 8 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/sunpkcs11.jar</span><br><span class="line">lr-x------ 1 ck ck 64 Jan 29 12:27 9 -&gt; /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/ext/nashorn.jar</span><br><span class="line">ck@test104:~/SocketTest$ ps -aL | grep 2494</span><br><span class="line">   2494    2494 pts/0    00:00:00 java</span><br><span class="line">   2494    2495 pts/0    00:00:00 java</span><br><span class="line">   2494    2496 pts/0    00:00:00 VM Thread</span><br><span class="line">   2494    2497 pts/0    00:00:00 Reference Handl</span><br><span class="line">   2494    2498 pts/0    00:00:00 Finalizer</span><br><span class="line">   2494    2499 pts/0    00:00:00 Signal Dispatch</span><br><span class="line">   2494    2500 pts/0    00:00:00 C2 CompilerThre</span><br><span class="line">   2494    2501 pts/0    00:00:00 C1 CompilerThre</span><br><span class="line">   2494    2502 pts/0    00:00:00 Service Thread</span><br><span class="line">   2494    2503 pts/0    00:00:00 VM Periodic Tas</span><br><span class="line">   2494    2505 pts/0    00:00:00 Thread-0</span><br></pre></td></tr></table></figure>
+
+<p>java 里面的东西就是对系统调用的包装<br>连接的socket: 17 -&gt; 得到文件描述符</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ grep &#x27;accept&#x27; *</span><br><span class="line">ooxx.2495:accept(16, &#123;sa_family=AF_INET6, sin6_port=htons(45520), inet_pton(AF_INET6, &quot;::ffff:127.0.0.1&quot;, &amp;sin6_addr), sin6_flowinfo=htonl(0), sin6_scope_id=0&#125;, [28]) = 17</span><br><span class="line">Binary file TestSocket.class matches</span><br><span class="line">TestSocket.java:      Socket client = server.accept();</span><br></pre></td></tr></table></figure>
+
+<p>man accept</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">RETURN VALUE</span><br><span class="line">       On  success,  these  system  calls  return  a nonnegative integer that is a file descriptor for the accepted</span><br><span class="line">       socket.  On error, -1 is returned, errno is set appropriately, and addrlen is left unchanged.</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/IO_multiplexing/thread.png"></p>
+<p>Java 1.2 之前创建的线程为用户级线程，程序员们为JVM开发了自己的一个线程调度内核，而到操作系统层面就是用户空间内的线程实现；1.2及以后，JVM选择了更加稳健且方便使用的操作系统原生的线程模型，通过系统调用，将程序的线程交给了操作系统内核进行调度。也就是说，现在的Java中线程的本质，其实就是操作系统中的线程，Linux下是基于pthread库实现的轻量级进程，Windows下原生的系统32API提供系统调用从而实现多线程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ grep &#x27;fork&#x27; *</span><br><span class="line">ck@test104:~/SocketTest$ grep &#x27;clone&#x27; *</span><br><span class="line">ooxx.2494:clone(child_stack=0x7fbcaed3efb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcaed3f9d0, tls=0x7fbcaed3f700, child_tidptr=0x7fbcaed3f9d0) = 2495</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcadc20fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcadc219d0, tls=0x7fbcadc21700, child_tidptr=0x7fbcadc219d0) = 2496</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcadb1ffb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcadb209d0, tls=0x7fbcadb20700, child_tidptr=0x7fbcadb209d0) = 2497</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcada1efb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcada1f9d0, tls=0x7fbcada1f700, child_tidptr=0x7fbcada1f9d0) = 2498</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad637fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad6389d0, tls=0x7fbcad638700, child_tidptr=0x7fbcad6389d0) = 2499</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad536fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad5379d0, tls=0x7fbcad537700, child_tidptr=0x7fbcad5379d0) = 2500</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad435fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad4369d0, tls=0x7fbcad436700, child_tidptr=0x7fbcad4369d0) = 2501</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad334fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad3359d0, tls=0x7fbcad335700, child_tidptr=0x7fbcad3359d0) = 2502</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad233fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad2349d0, tls=0x7fbcad234700, child_tidptr=0x7fbcad2349d0) = 2503</span><br><span class="line">ooxx.2495:clone(child_stack=0x7fbcad080fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad0819d0, tls=0x7fbcad081700, child_tidptr=0x7fbcad0819d0) = 2505</span><br></pre></td></tr></table></figure>
+
+<p>主方法调用poll</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ tail -f ooxx.2495</span><br><span class="line">futex(0x7fbca80b1078, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">futex(0x7fbca80b1028, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">mprotect(0x7fbca8194000, 4096, PROT_READ|PROT_WRITE) = 0</span><br><span class="line">mprotect(0x7fbca8195000, 4096, PROT_READ|PROT_WRITE) = 0</span><br><span class="line">mmap(NULL, 1052672, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7fbcacf81000</span><br><span class="line">clone(child_stack=0x7fbcad080fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad0819d0, tls=0x7fbcad081700, child_tidptr=0x7fbcad0819d0) = 2505</span><br><span class="line">futex(0x7fbca800b278, FUTEX_WAIT_PRIVATE, 0, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAIT_PRIVATE, 2, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 0</span><br><span class="line">poll([&#123;fd=16, events=POLLIN|POLLERR&#125;], 1, -1</span><br></pre></td></tr></table></figure>
+
+<p>nc localhost 8090 新建一个tcp连接, socket file descriptor = 18, clone 一个新线程2706 等待输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ tail -f ooxx.2495</span><br><span class="line">futex(0x7fbca80b1078, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">futex(0x7fbca80b1028, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">mprotect(0x7fbca8194000, 4096, PROT_READ|PROT_WRITE) = 0</span><br><span class="line">mprotect(0x7fbca8195000, 4096, PROT_READ|PROT_WRITE) = 0</span><br><span class="line">mmap(NULL, 1052672, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7fbcacf81000</span><br><span class="line">clone(child_stack=0x7fbcad080fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcad0819d0, tls=0x7fbcad081700, child_tidptr=0x7fbcad0819d0) = 2505</span><br><span class="line">futex(0x7fbca800b278, FUTEX_WAIT_PRIVATE, 0, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAIT_PRIVATE, 2, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 0</span><br><span class="line">poll([&#123;fd=16, events=POLLIN|POLLERR&#125;], 1, -1) = 1 ([&#123;fd=16, revents=POLLIN&#125;])</span><br><span class="line">accept(16, &#123;sa_family=AF_INET6, sin6_port=htons(45522), inet_pton(AF_INET6, &quot;::ffff:127.0.0.1&quot;, &amp;sin6_addr), sin6_flowinfo=htonl(0), sin6_scope_id=0&#125;, [28]) = 18</span><br><span class="line">fcntl(18, F_GETFL)                      = 0x2 (flags O_RDWR)</span><br><span class="line">fcntl(18, F_SETFL, O_RDWR)              = 0</span><br><span class="line">write(1, &quot;step2: client\t45522&quot;, 19)    = 19</span><br><span class="line">write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">mmap(NULL, 1052672, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7fbcace80000</span><br><span class="line">clone(child_stack=0x7fbcacf7ffb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7fbcacf809d0, tls=0x7fbcacf80700, child_tidptr=0x7fbcacf809d0) = 2706</span><br><span class="line">futex(0x7fbca800b27c, FUTEX_WAIT_PRIVATE, 0, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAIT_PRIVATE, 2, NULL) = 0</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 0</span><br><span class="line">poll([&#123;fd=16, events=POLLIN|POLLERR&#125;], 1, -1</span><br></pre></td></tr></table></figure>
+
+<p>也阻塞住了，等待输入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ tail -f ooxx.2706</span><br><span class="line">rt_sigprocmask(SIG_UNBLOCK, [HUP INT ILL BUS FPE SEGV USR2 TERM], NULL, 8) = 0</span><br><span class="line">rt_sigprocmask(SIG_BLOCK, [QUIT], NULL, 8) = 0</span><br><span class="line">futex(0x7fbca800b27c, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">sched_getaffinity(2706, 32, [0])        = 8</span><br><span class="line">sched_getaffinity(2706, 32, [0])        = 8</span><br><span class="line">mmap(0x7fbcace80000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fbcace80000</span><br><span class="line">mprotect(0x7fbcace80000, 12288, PROT_NONE) = 0</span><br><span class="line">prctl(PR_SET_NAME, &quot;Thread-1&quot;)          = 0</span><br><span class="line">recvfrom(18,</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/test$ ps -aL | grep 2494</span><br><span class="line">   2494    2494 pts/0    00:00:00 java</span><br><span class="line">   2494    2495 pts/0    00:00:00 java</span><br><span class="line">   2494    2496 pts/0    00:00:00 VM Thread</span><br><span class="line">   2494    2497 pts/0    00:00:00 Reference Handl</span><br><span class="line">   2494    2498 pts/0    00:00:00 Finalizer</span><br><span class="line">   2494    2499 pts/0    00:00:00 Signal Dispatch</span><br><span class="line">   2494    2500 pts/0    00:00:00 C2 CompilerThre</span><br><span class="line">   2494    2501 pts/0    00:00:00 C1 CompilerThre</span><br><span class="line">   2494    2502 pts/0    00:00:00 Service Thread</span><br><span class="line">   2494    2503 pts/0    00:00:02 VM Periodic Tas</span><br><span class="line">   2494    2505 pts/0    00:00:00 Thread-0</span><br><span class="line">   2494    2706 pts/0    00:00:00 Thread-1</span><br></pre></td></tr></table></figure>
+
+<p>发送数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/test$ nc localhost 8090</span><br><span class="line">second client msg</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ck@test104:~/SocketTest$ tail -f ooxx.2706</span><br><span class="line">rt_sigprocmask(SIG_UNBLOCK, [HUP INT ILL BUS FPE SEGV USR2 TERM], NULL, 8) = 0</span><br><span class="line">rt_sigprocmask(SIG_BLOCK, [QUIT], NULL, 8) = 0</span><br><span class="line">futex(0x7fbca800b27c, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">futex(0x7fbca800b228, FUTEX_WAKE_PRIVATE, 1) = 1</span><br><span class="line">sched_getaffinity(2706, 32, [0])        = 8</span><br><span class="line">sched_getaffinity(2706, 32, [0])        = 8</span><br><span class="line">mmap(0x7fbcace80000, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7fbcace80000</span><br><span class="line">mprotect(0x7fbcace80000, 12288, PROT_NONE) = 0</span><br><span class="line">prctl(PR_SET_NAME, &quot;Thread-1&quot;)          = 0</span><br><span class="line">recvfrom(18, &quot;second client msg\n&quot;, 8192, 0, NULL, NULL) = 18</span><br><span class="line">ioctl(18, FIONREAD, [0])                = 0</span><br><span class="line">write(1, &quot;second client msg&quot;, 17)       = 17</span><br><span class="line">write(1, &quot;\n&quot;, 1)                       = 1</span><br><span class="line">recvfrom(18,</span><br></pre></td></tr></table></figure>
+
+
+<p>每个线程对应一个client<br>BIO: blcok IO,阻塞IO<br>因为阻塞才抛出这么多线程</p>
+<h2 id="select"><a href="#select" class="headerlink" title="select"></a>select</h2><p>NIO 一个线程解决N个客户端的问题<br>Java NIO: new IO<br>操作系统NIO，non-blocking IO</p>
+<p>需要修改内核，增加新的系统调用 select<br>select: 多路复用器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">select(fds) // O(1)</span><br><span class="line">kernel // 主动遍历 O(n)</span><br><span class="line">recvfrom // O(m)</span><br></pre></td></tr></table></figure>
+
+<p>弊端：1 每次重复传递数据 2 每次调用要触发内核遍历</p>
+<h2 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h2><p><img src="/images/IO_multiplexing/epoll.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2021/01/29/IO-Multiplexing/" data-id="ckqhp9u6k00053ot0cyywg6ym" data-title="I/O 多路复用" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/02/08/SuffixArray/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          SuffixArray
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/01/17/VirtualBox/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Mac通过Mosh连接虚拟机</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ACM/" style="font-size: 15px;">ACM</a> <a href="/tags/CTF/" style="font-size: 12.5px;">CTF</a> <a href="/tags/JVM/" style="font-size: 17.5px;">JVM</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Web/" style="font-size: 15px;">Web</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/13/python/">Python</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/v2ray/">搭梯子</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/SuffixArray/">SuffixArray</a>
+          </li>
+        
+          <li>
+            <a href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

