@@ -16,7 +16,7 @@
 <meta property="og:image" content="http://example.com/images/character_coding/ascii.png">
 <meta property="og:image" content="http://example.com/images/character_coding/utf8.png">
 <meta property="article:published_time" content="2020-11-10T23:03:56.000Z">
-<meta property="article:modified_time" content="2021-06-29T06:52:50.856Z">
+<meta property="article:modified_time" content="2021-06-30T06:20:20.699Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="Web">
 <meta name="twitter:card" content="summary">
@@ -109,17 +109,25 @@
 <h2 id="Unicode"><a href="#Unicode" class="headerlink" title="Unicode"></a>Unicode</h2><p>不同国家有不同的编码，Unicode统一所有的字符编码</p>
 <p>一开始unicode使用UCS-2字符集(Universal Character Set)，16位可表示65536个字符<br>但还是无法表示世界上所有的字符<br>后来又有了UCS-4字符集，用32位表示一个字符，可表示近43亿个字符<br>但是空间过大，不能接受</p>
 <p><code>Unicode是用0至65535之间的数字来表示所有字符.其中0至127这128个数字表示的字符仍然跟ASCII完全一样.65536是2的16次方.这是第一步.第二步就是怎么把0至65535这些数字转化成01串保存到计算机中.这肯定就有不同的保存方式了.于是出现了UTF(unicode transformation format),有UTF-8,UTF-16.</code></p>
+<p>Unicode字符平面映射<br><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/Unicode%E5%AD%97%E7%AC%A6%E5%B9%B3%E9%9D%A2%E6%98%A0%E5%B0%84">https://zh.wikipedia.org/wiki/Unicode%E5%AD%97%E7%AC%A6%E5%B9%B3%E9%9D%A2%E6%98%A0%E5%B0%84</a></p>
 <h2 id="UTF-8编码（unicode-transformation-format）"><a href="#UTF-8编码（unicode-transformation-format）" class="headerlink" title="UTF-8编码（unicode transformation format）"></a>UTF-8编码（unicode transformation format）</h2><p>将UCS-4字符集的码位划分为4个区间<br><img src="/images/character_coding/utf8.png"></p>
 <p>e.g.<br>编 （unicode 32534) :<br>-&gt;十进制 32534<br>-&gt;二进制 0111 11 1100 01 0110<br>(1110xx 10xx 10xx)<br>-&gt;(1110) 0111 (10)11 1100 (10)01 0110<br>-&gt; e     7    b      c    9      6<br>-&gt; UTF-8: e7 bc 96<br>-&gt; URL编码: %e7%bc%96</p>
-<h2 id="UTF-16编码"><a href="#UTF-16编码" class="headerlink" title="UTF-16编码"></a>UTF-16编码</h2><p>在Unicode基本多文种平面定义的字符（无论是拉丁字母、汉字或其他文字或符号），一律使用2字节储存。而在辅助平面定义的字符，会以代理对（surrogate pair）的形式，以两个2字节的值来储存。</p>
+<h2 id="UTF-16编码"><a href="#UTF-16编码" class="headerlink" title="UTF-16编码"></a>UTF-16编码</h2><p>在Unicode基本多文种平面(0號平面)定义的字符（无论是拉丁字母、汉字或其他文字或符号），一律使用2字节储存。而在辅助平面定义的字符，会以代理对（surrogate pair）的形式，以两个2字节的值来储存。</p>
 <p>UTF-16比起UTF-8，好处在于大部分字符都以固定长度的字节（2字节）储存，但UTF-16却无法兼容于ASCII编码。</p>
+<p>UTF-16 顾名思义，就是用两个字节表示一个字符。那么用两个字节表示必然存在字节序的问题，即大端小端的问题。下面就来讲讲 UTF-16BE、UTF-16LE、UTF-16 三者之间的区别吧。</p>
+<p>UTF-16BE，其后缀是 BE 即 big-endian，大端的意思。大端就是将高位的字节放在低地址表示。<br>UTF-16LE，其后缀是 LE 即 little-endian，小端的意思。小端就是将高位的字节放在高地址表示。<br>UTF-16，没有指定后缀，即不知道其是大小端，所以其开始的两个字节表示该字节数组是大端还是小端。即FE FF表示大端，FF FE表示小端。</p>
+<p>Python test</p>
+<p>“王” unicode = 0x0000 738b = int(29579)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt;&gt;&gt; bytes(&quot;王&quot;, &quot;utf-8&quot;)</span><br><span class="line">b&#x27;\xe7\x8e\x8b&#x27;</span><br><span class="line">&gt;&gt;&gt; bytes(&quot;王&quot;, &quot;utf-16&quot;)</span><br><span class="line">b&#x27;\xff\xfe\x8bs&#x27;</span><br><span class="line">&gt;&gt;&gt; hex(ord(&#x27;s&#x27;))</span><br><span class="line">&#x27;0x73&#x27;</span><br></pre></td></tr></table></figure>
+
+
 <p>Java char类型采用UTF-16编码表示一个代码单元, 辅助平面定义的字符需要用两个char表示</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">String s = &quot;hi\uD83E\uDF60&quot;;</span><br><span class="line">System.out.println(s);</span><br><span class="line">System.out.println(s.length());</span><br><span class="line">int cpCount = s.codePointCount(0, s.length());</span><br><span class="line">System.out.println(cpCount);</span><br><span class="line">char ch = s.charAt(2);</span><br><span class="line">System.out.println(ch);</span><br><span class="line"></span><br><span class="line">hi🭠</span><br><span class="line">4</span><br><span class="line">3</span><br><span class="line">?</span><br></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2020/11/10/character-coding/" data-id="ckqhp9u6u000u3ot0ema249yh" data-title="ASCII,GB2312,Unicode,UTF8,UTF16" class="article-share-link">Share</a>
+      <a data-url="http://example.com/2020/11/10/character-coding/" data-id="ckqj3b3cq000ud0t09wop0468" data-title="ASCII,GB2312,Unicode,UTF8,UTF16" class="article-share-link">Share</a>
       
       
       
